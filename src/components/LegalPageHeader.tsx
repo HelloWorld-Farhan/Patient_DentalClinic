@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { initialNotifications } from '../data/mockData';
+import { NotificationItem } from '../types';
 
 interface LegalPageHeaderProps {
   title: string;
@@ -14,11 +17,53 @@ export default function LegalPageHeader({
 }: LegalPageHeaderProps) {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
+  const notifDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [avatarUrl, setAvatarUrl] = useState(() => {
+    return localStorage.getItem('smileclinic_patient_avatar') || 
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80';
+  });
+
+  const unreadCount = notifications.filter(n => n.unread).length;
+
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, unread: false })));
+  };
+
+  const handleNotificationClick = (id: string) => {
+    setNotifications(notifications.map(n => n.id === id ? { ...n, unread: false } : n));
+    setNotificationsOpen(false);
+    navigate('/dashboard');
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(e.target as Node)) {
+        setNotificationsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     // Check if user is currently authenticated in portal session
     const auth = typeof window !== 'undefined' && localStorage.getItem('smileclinic_patient_auth') === 'true';
     setIsLoggedIn(Boolean(auth));
+
+    const syncAvatar = () => {
+      const stored = localStorage.getItem('smileclinic_patient_avatar');
+      if (stored) setAvatarUrl(stored);
+    };
+
+    window.addEventListener('patient-avatar-updated', syncAvatar);
+    window.addEventListener('storage', syncAvatar);
+    return () => {
+      window.removeEventListener('patient-avatar-updated', syncAvatar);
+      window.removeEventListener('storage', syncAvatar);
+    };
   }, []);
 
   return (
@@ -77,6 +122,91 @@ export default function LegalPageHeader({
           {/* Context A: Logged In Patient (Dashboard Context) */}
           {isLoggedIn ? (
             <>
+              {/* Notification Bell Dropdown */}
+              <div className="relative" ref={notifDropdownRef}>
+                <button
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  className="relative p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
+                  aria-label="Notifications"
+                >
+                  <span className="material-symbols-outlined text-[22px]">notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notification Popover (Fixed on mobile with backdrop, absolute on desktop) */}
+                <AnimatePresence>
+                  {notificationsOpen && (
+                    <>
+                      {/* Mobile Backdrop */}
+                      <div 
+                        className="fixed inset-0 bg-black/20 backdrop-blur-2xs z-[9998] sm:hidden"
+                        onClick={() => setNotificationsOpen(false)}
+                      />
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                        transition={{ duration: 0.15 }}
+                        className="fixed top-16 left-3 right-3 max-w-md mx-auto sm:absolute sm:top-full sm:left-auto sm:right-0 sm:mt-2 sm:w-96 bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high z-[9999] overflow-hidden"
+                      >
+                        <div className="p-4 border-b border-surface-container-high flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-sm text-on-surface">Notifications</h4>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                              {unreadCount} Unread
+                            </span>
+                          </div>
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={markAllAsRead}
+                              className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+                            >
+                              Mark all as read
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="max-h-80 overflow-y-auto divide-y divide-surface-container-low p-1">
+                          {notifications.length === 0 ? (
+                            <div className="p-8 text-center text-xs text-outline">
+                              No notifications at this time.
+                            </div>
+                          ) : (
+                            notifications.map((n) => (
+                              <div
+                                key={n.id}
+                                onClick={() => handleNotificationClick(n.id)}
+                                className={`p-3 rounded-xl transition-colors cursor-pointer flex items-start gap-3 ${
+                                  n.unread ? 'bg-primary-tint/30 hover:bg-primary-tint/50' : 'hover:bg-surface-container-low'
+                                }`}
+                              >
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${n.bgClass} ${n.textClass}`}>
+                                  <span className="material-symbols-outlined text-[18px]">{n.icon}</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-1 mb-0.5">
+                                    <span className="text-xs font-bold text-on-surface truncate">{n.title}</span>
+                                    <span className="text-[10px] text-outline shrink-0">{n.time}</span>
+                                  </div>
+                                  <p className="text-[11px] text-on-surface-variant line-clamp-2 leading-relaxed">
+                                    {n.desc}
+                                  </p>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <Link
                 to="/dashboard"
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-primary hover:bg-primary-tint border border-primary/20 transition-all shadow-xs shrink-0"
@@ -90,7 +220,7 @@ export default function LegalPageHeader({
               <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface-container-low border border-surface-container-high text-xs shrink-0">
                 <div className="w-5 h-5 rounded-full overflow-hidden bg-primary/10 ring-1 ring-primary/30">
                   <img
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+                    src={avatarUrl}
                     alt="Ananya"
                     className="w-full h-full object-cover"
                   />

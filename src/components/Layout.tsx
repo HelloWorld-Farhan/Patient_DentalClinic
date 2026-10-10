@@ -18,6 +18,23 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [avatarUrl, setAvatarUrl] = useState<string>(() => {
+    return localStorage.getItem('smileclinic_patient_avatar') || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+  });
+
+  useEffect(() => {
+    const handleAvatarUpdate = () => {
+      const saved = localStorage.getItem('smileclinic_patient_avatar');
+      if (saved) setAvatarUrl(saved);
+    };
+    window.addEventListener('patient-avatar-updated', handleAvatarUpdate);
+    window.addEventListener('storage', handleAvatarUpdate);
+    return () => {
+      window.removeEventListener('patient-avatar-updated', handleAvatarUpdate);
+      window.removeEventListener('storage', handleAvatarUpdate);
+    };
+  }, []);
+
   // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -143,7 +160,7 @@ export default function Layout() {
             >
               <div className="relative w-9 h-9 rounded-full overflow-hidden bg-primary/10 ring-2 ring-primary/20 shrink-0 flex items-center justify-center">
                 <img 
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
+                  src={avatarUrl} 
                   alt={initialPatientProfile.name} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
                 />
@@ -197,7 +214,7 @@ export default function Layout() {
 
       {/* Top Header Bar */}
       <div className="lg:pl-64 flex flex-col flex-1">
-        <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-surface-container-high h-16 flex items-center justify-between px-4 sm:px-6">
+        <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-xl border-b border-surface-container-high h-16 flex items-center justify-between px-4 sm:px-6">
           {/* Left: Mobile Toggle & Page Context */}
           <div className="flex items-center gap-3">
             <button
@@ -253,32 +270,39 @@ export default function Layout() {
                 )}
               </button>
 
-              {/* Notification Popover */}
+              {/* Notification Popover (Fixed on mobile with backdrop, absolute on desktop) */}
               <AnimatePresence>
                 {notificationsOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-[calc(100vw-32px)] max-w-sm sm:w-96 bg-surface-container-lowest rounded-2xl shadow-xl border border-surface-container-high z-50 overflow-hidden"
-                  >
-                    <div className="p-4 border-b border-surface-container-high flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-sm text-on-surface">Notifications</h4>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                          {unreadCount} Unread
-                        </span>
+                  <>
+                    {/* Mobile Backdrop for safe dismissal */}
+                    <div 
+                      className="fixed inset-0 bg-black/20 backdrop-blur-2xs z-[9998] sm:hidden"
+                      onClick={() => setNotificationsOpen(false)}
+                    />
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                      transition={{ duration: 0.15 }}
+                      className="fixed top-16 left-3 right-3 max-w-md mx-auto sm:absolute sm:top-full sm:left-auto sm:right-0 sm:mt-2 sm:w-96 bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high z-[9999] overflow-hidden"
+                    >
+                      <div className="p-4 border-b border-surface-container-high flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-sm text-on-surface">Notifications</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                            {unreadCount} Unread
+                          </span>
+                        </div>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllAsRead}
+                            className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+                          >
+                            Mark all as read
+                          </button>
+                        )}
                       </div>
-                      {unreadCount > 0 && (
-                        <button
-                          onClick={markAllAsRead}
-                          className="text-xs font-semibold text-primary hover:underline cursor-pointer"
-                        >
-                          Mark all as read
-                        </button>
-                      )}
-                    </div>
 
                     <div className="max-h-80 overflow-y-auto divide-y divide-surface-container-low p-1">
                       {notifications.length === 0 ? (
@@ -311,9 +335,10 @@ export default function Layout() {
                       )}
                     </div>
                   </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
 
             {/* Profile Trigger & Dropdown */}
             <div className="relative" ref={profileDropdownRef}>
@@ -325,7 +350,7 @@ export default function Layout() {
                 >
                   <div className="relative w-8 h-8 rounded-full overflow-hidden bg-primary/10 ring-2 ring-primary/20 shrink-0 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                     <img 
-                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
+                      src={avatarUrl} 
                       alt={initialPatientProfile.name} 
                       className="w-full h-full object-cover" 
                     />
@@ -352,13 +377,19 @@ export default function Layout() {
 
               <AnimatePresence>
                 {profileOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-[calc(100vw-32px)] max-w-xs sm:w-64 bg-surface-container-lowest rounded-2xl shadow-xl border border-surface-container-high z-50 p-2"
-                  >
+                  <>
+                    {/* Mobile Backdrop for profile menu */}
+                    <div 
+                      className="fixed inset-0 bg-black/20 backdrop-blur-2xs z-[9998] sm:hidden"
+                      onClick={() => setProfileOpen(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                      transition={{ duration: 0.15 }}
+                      className="fixed top-16 right-3 left-auto sm:absolute sm:top-full sm:mt-2 w-[calc(100vw-32px)] max-w-xs sm:w-64 bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high z-[9999] p-2"
+                    >
                     <div className="p-3 bg-surface-container-low rounded-xl mb-2">
                       <span className="text-xs font-bold text-on-surface block">{initialPatientProfile.name}</span>
                       <span className="text-[11px] text-on-surface-variant block">{initialPatientProfile.email}</span>
@@ -417,7 +448,8 @@ export default function Layout() {
                       <span>Sign Out of Portal</span>
                     </button>
                   </motion.div>
-                )}
+                </>
+              )}
               </AnimatePresence>
             </div>
           </div>

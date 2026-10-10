@@ -303,16 +303,19 @@ export default function ForgotPassword() {
                       6-Digit Security Code
                     </label>
                     
-                    {/* 6 OTP Boxes */}
+                    {/* 6 OTP Boxes with Framer Motion Micro-Animations */}
                     <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 md:gap-3" onPaste={handleOtpPaste}>
                       {otp.map((digit, index) => (
-                        <input
+                        <motion.input
                           key={index}
                           ref={(el) => { otpInputsRef.current[index] = el; }}
                           type="text"
                           inputMode="numeric"
                           maxLength={1}
                           value={digit}
+                          whileFocus={{ scale: 1.08, borderColor: '#007782', boxShadow: '0 0 0 3px rgba(0, 119, 130, 0.2)' }}
+                          animate={otpError ? { x: [-4, 4, -4, 4, 0] } : (digit ? { scale: [1, 1.12, 1] } : {})}
+                          transition={{ duration: 0.2 }}
                           onChange={(e) => handleOtpChange(index, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(index, e)}
                           className={`w-9 h-11 sm:w-11 sm:h-13 md:w-12 md:h-14 text-center font-bold text-base sm:text-lg md:text-xl rounded-xl border bg-surface-container-low text-on-surface transition-all focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary ${
