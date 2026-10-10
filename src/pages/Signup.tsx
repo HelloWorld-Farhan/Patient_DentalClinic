@@ -1,414 +1,814 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Signup() {
-  const [step, setStep] = useState(1);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [dob, setDob] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [insuranceProvider, setInsuranceProvider] = useState('Delta Dental');
-  const [policyNumber, setPolicyNumber] = useState('');
-  const [allergies, setAllergies] = useState('None');
-  const [agreed, setAgreed] = useState(false);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [firstName, setFirstName] = useState('Sarah');
+  const [lastName, setLastName] = useState('Jenkins');
+  const [dob, setDob] = useState('24 / 08 / 1994');
+  const [phone, setPhone] = useState('(555) 349-8821');
+  const [email, setEmail] = useState('sarah.jenkins@example.com');
+  const [password, setPassword] = useState('SmileHealth2026!');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isExistingPatient, setIsExistingPatient] = useState(false);
+  const [chartNumber, setChartNumber] = useState('');
+  const [insuranceProvider, setInsuranceProvider] = useState('delta');
+  const [insuranceMemberId, setInsuranceMemberId] = useState('DD-99201-P');
+  const [agreedTerms, setAgreedTerms] = useState(true);
+  const [receiveSms, setReceiveSms] = useState(true);
+
+  // Step 2 Fields
+  const [visitReason, setVisitReason] = useState('Routine Cleaning & Comprehensive Exam');
+  const [lastVisit, setLastVisit] = useState('Within the last 6 months');
+  const [allergies, setAllergies] = useState<string[]>(['None']);
+
+  // Step 3 Fields
+  const [twoFactorMethod, setTwoFactorMethod] = useState<'sms' | 'app'>('sms');
+  const [preferredBranch, setPreferredBranch] = useState('Downtown Main Pavilion (100 Smile Way)');
+  const [electronicSignature, setElectronicSignature] = useState('Sarah Jenkins');
   const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  // Password rules validation
+  // Password requirements dynamic check
   const hasMinLength = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
   const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (step < 3) {
-      setStep(step + 1);
+    if (!hasMinLength || !hasUppercase || !hasSymbol) {
+      alert("Please ensure your password meets all 3 security requirements.");
+      return;
+    }
+    setStep(2);
+  };
+
+  const handleStep2Submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setStep(3);
+  };
+
+  const handleFinalSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      navigate('/dashboard');
+    }, 600);
+  };
+
+  const toggleAllergy = (allergy: string) => {
+    if (allergy === 'None') {
+      setAllergies(['None']);
+      return;
+    }
+    const filtered = allergies.filter(a => a !== 'None');
+    if (filtered.includes(allergy)) {
+      const next = filtered.filter(a => a !== allergy);
+      setAllergies(next.length ? next : ['None']);
     } else {
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        navigate('/dashboard');
-      }, 500);
+      setAllergies([...filtered, allergy]);
     }
   };
 
   return (
-    <div className="bg-surface font-sans text-on-surface min-h-screen flex flex-col justify-between selection:bg-secondary-fixed selection:text-on-secondary-fixed">
+    <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col justify-between selection:bg-secondary-fixed selection:text-on-secondary-fixed relative">
       {/* Top Header */}
-      <header className="w-full bg-white/80 backdrop-blur-xl border-b border-surface-container-high shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
+      <header className="w-full bg-surface-container-lowest/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,119,130,0.06)] border-b border-surface-container-high z-30">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
               <span className="material-symbols-outlined text-[24px]">dentistry</span>
             </div>
             <span className="font-headline font-bold text-xl text-primary">Smile Clinic</span>
           </Link>
 
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-on-surface-variant hidden sm:inline">Already registered?</span>
-            <Link
-              to="/login"
-              className="text-xs font-bold text-primary px-3 py-1.5 rounded-lg border border-primary/30 hover:bg-primary-tint/30 transition-colors"
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-1.5 text-on-surface-variant text-xs font-medium bg-surface-container-low px-3 py-1.5 rounded-full border border-surface-container-high">
+              <span className="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+              <span>HIPAA Compliant 256-Bit SSL</span>
+            </div>
+            <a
+              href="tel:5552345678"
+              className="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors text-xs font-semibold"
             >
-              Sign In
-            </Link>
+              <span className="material-symbols-outlined text-[18px]">help_outline</span>
+              <span>Support</span>
+            </a>
           </div>
         </div>
       </header>
 
-      {/* Main Wizard Area */}
+      {/* Main Viewport */}
       <main className="w-full flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-5xl bg-surface-container-lowest rounded-2xl shadow-xl border border-surface-container-high overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px]"
-        >
-          {/* Left Context & Progress Column (4 cols) */}
-          <div className="lg:col-span-4 bg-surface-container-low p-6 sm:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-surface-container-high">
-            <div>
-              <div className="flex items-center gap-2.5 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-xs">
-                  <span className="material-symbols-outlined text-[22px]">person_add</span>
+        <div className="flex flex-col w-full max-w-6xl mx-auto py-2 sm:py-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            {/* Left Hero/Context Panel (Desktop 4 cols) */}
+            <div className="lg:col-span-4 flex flex-col gap-5">
+              <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-sm border border-surface-container-high/60 relative overflow-hidden">
+                <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-primary-fixed/20 blur-2xl pointer-events-none"></div>
+
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-xs">
+                    <span className="material-symbols-outlined text-[28px] text-primary">dentistry</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">Smile Network</span>
+                    <span className="font-headline font-bold text-base sm:text-lg text-on-surface">Smile Clinic Portal</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1 mb-8">
+                  <h1 className="font-headline font-bold text-2xl text-on-surface tracking-tight">
+                    Create Your Patient Account
+                  </h1>
+                  <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+                    Access appointment scheduling, digital X-rays, treatment plans, and instant billing.
+                  </p>
+                </div>
+
+                {/* Step Indicator (Vertical Navigation Experience) */}
+                <div className="space-y-3 pt-1">
+                  {/* Step 1 Item */}
+                  <div className={`flex items-start gap-3 transition-opacity ${step === 1 ? 'opacity-100' : 'opacity-80'}`}>
+                    <div className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shrink-0 shadow-xs transition-colors ${
+                      step >= 1 ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface-variant'
+                    }`}>
+                      {step > 1 ? <span className="material-symbols-outlined text-[16px]">check</span> : '1'}
+                    </div>
+                    <div className="min-w-0">
+                      <span className={`text-xs font-bold block ${step === 1 ? 'text-primary' : 'text-on-surface'}`}>
+                        Step 1: Personal Details
+                      </span>
+                      <span className="text-[11px] text-on-surface-variant block">Identity, contact, & credentials</span>
+                    </div>
+                  </div>
+
+                  <div className={`h-6 w-0.5 ml-4 transition-colors ${step > 1 ? 'bg-primary' : 'bg-surface-container-high'}`}></div>
+
+                  {/* Step 2 Item */}
+                  <div className={`flex items-start gap-3 transition-opacity ${step === 2 ? 'opacity-100' : step > 2 ? 'opacity-80' : 'opacity-60'}`}>
+                    <div className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shrink-0 shadow-xs transition-colors ${
+                      step >= 2 ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface-variant'
+                    }`}>
+                      {step > 2 ? <span className="material-symbols-outlined text-[16px]">check</span> : '2'}
+                    </div>
+                    <div className="min-w-0">
+                      <span className={`text-xs font-bold block ${step === 2 ? 'text-primary' : 'text-on-surface'}`}>
+                        Step 2: Dental History
+                      </span>
+                      <span className="text-[11px] text-on-surface-variant block">Prior records, allergies & coverage</span>
+                    </div>
+                  </div>
+
+                  <div className={`h-6 w-0.5 ml-4 transition-colors ${step > 2 ? 'bg-primary' : 'bg-surface-container-high'}`}></div>
+
+                  {/* Step 3 Item */}
+                  <div className={`flex items-start gap-3 transition-opacity ${step === 3 ? 'opacity-100' : 'opacity-60'}`}>
+                    <div className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center shrink-0 shadow-xs transition-colors ${
+                      step === 3 ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface-variant'
+                    }`}>
+                      3
+                    </div>
+                    <div className="min-w-0">
+                      <span className={`text-xs font-bold block ${step === 3 ? 'text-primary' : 'text-on-surface'}`}>
+                        Step 3: Security & Verification
+                      </span>
+                      <span className="text-[11px] text-on-surface-variant block">2-factor auth & electronic consent</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Clinic Photo Accent */}
+                <div className="mt-8 rounded-xl overflow-hidden relative shadow-sm border border-surface-container-high">
+                  <img
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzkdhELD1wZKp2_kTNJxIE8Qy1AQzlBGtzLar04x0Xq8Zn5CwCZu80v5B_waa-YhuM5G4rvhkqZto0K5sk8GZ4yvFoYM-PMYi0wGM8571FVoQAkgkeQXyZHjIT8Pu9e_YVCMmeH5zfCIAfvdnIj6BdKcSD0GIQQgLk05pwMRvHdtW-uH3rd4hIqa1ST0M4Dsme_JinopgmIWNnrZcBCqwVDI-o0iwNHK87gPv73y9hpsk42lg91dDB"
+                    alt="Modern high-tech dental operatory clinic room"
+                    className="w-full h-36 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
+                    <div className="flex items-center gap-1.5 text-white text-[11px] font-semibold">
+                      <span className="material-symbols-outlined text-[16px] text-teal-300">verified</span>
+                      <span>Accepting 30+ premier health networks</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Trust Assurance Box */}
+              <div className="bg-surface-container-lowest p-5 rounded-2xl shadow-sm border border-surface-container-high/60 flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-primary shrink-0 border border-surface-container-high">
+                  <span className="material-symbols-outlined text-[22px]">lock</span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider block">Patient Network</span>
-                  <span className="font-headline font-bold text-base text-on-surface">Smile Clinic Portal</span>
-                </div>
-              </div>
-
-              <h1 className="font-headline font-bold text-2xl text-on-surface mb-2">
-                Create Your Patient Account
-              </h1>
-              <p className="text-xs text-on-surface-variant leading-relaxed mb-8">
-                Access online appointment scheduling, digital 3D X-rays, treatment plans, and instant billing.
-              </p>
-
-              {/* Step Indicators */}
-              <div className="space-y-4">
-                {/* Step 1 */}
-                <div className="flex items-start gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
-                    step >= 1 ? 'bg-primary text-white shadow-sm' : 'bg-surface-container-high text-on-surface-variant'
-                  }`}>
-                    {step > 1 ? <span className="material-symbols-outlined text-[16px]">check</span> : '1'}
-                  </div>
-                  <div>
-                    <span className={`text-xs font-bold block ${step === 1 ? 'text-primary' : 'text-on-surface'}`}>
-                      Step 1: Personal Details
-                    </span>
-                    <span className="text-[11px] text-on-surface-variant">Identity, contact, credentials</span>
-                  </div>
-                </div>
-
-                <div className="h-4 w-0.5 bg-surface-container-high ml-4"></div>
-
-                {/* Step 2 */}
-                <div className="flex items-start gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
-                    step >= 2 ? 'bg-primary text-white shadow-sm' : 'bg-surface-container-high text-on-surface-variant'
-                  }`}>
-                    {step > 2 ? <span className="material-symbols-outlined text-[16px]">check</span> : '2'}
-                  </div>
-                  <div>
-                    <span className={`text-xs font-bold block ${step === 2 ? 'text-primary' : 'text-on-surface'}`}>
-                      Step 2: Dental History & Insurance
-                    </span>
-                    <span className="text-[11px] text-on-surface-variant">Policy, allergies, coverage</span>
-                  </div>
-                </div>
-
-                <div className="h-4 w-0.5 bg-surface-container-high ml-4"></div>
-
-                {/* Step 3 */}
-                <div className="flex items-start gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
-                    step >= 3 ? 'bg-primary text-white shadow-sm' : 'bg-surface-container-high text-on-surface-variant'
-                  }`}>
-                    3
-                  </div>
-                  <div>
-                    <span className={`text-xs font-bold block ${step === 3 ? 'text-primary' : 'text-on-surface'}`}>
-                      Step 3: Verification & Consent
-                    </span>
-                    <span className="text-[11px] text-on-surface-variant">Security verification, consent</span>
-                  </div>
+                  <span className="text-xs font-bold text-on-surface block mb-0.5">HIPAA Compliant Platform</span>
+                  <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                    Your health data is protected by HIPAA compliant 256-bit encryption. Smile Clinic never shares or sells your medical records.
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Trust badge */}
-            <div className="mt-8 pt-6 border-t border-surface-container-high flex items-center gap-3">
-              <span className="material-symbols-outlined text-primary text-[24px]">verified</span>
-              <div>
-                <span className="text-xs font-bold text-on-surface block">HIPAA Compliant Platform</span>
-                <span className="text-[10px] text-on-surface-variant leading-tight block">
-                  All personal health information is protected by 256-bit encryption.
-                </span>
-              </div>
-            </div>
-          </div>
+            {/* Right Form Workspace (Desktop 8 cols) */}
+            <div className="lg:col-span-8 flex flex-col gap-6">
+              <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-sm border border-surface-container-high/60">
+                <AnimatePresence mode="wait">
+                  {/* ==================== STEP 1: PERSONAL DETAILS ==================== */}
+                  {step === 1 && (
+                    <motion.div
+                      key="step1"
+                      initial={{ opacity: 0, x: 15 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -15 }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      {/* Step Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 gap-2 border-b border-surface-container-high mb-6">
+                        <div>
+                          <h2 className="font-headline font-bold text-xl sm:text-2xl text-on-surface">Personal Information</h2>
+                          <p className="text-xs text-on-surface-variant mt-0.5">Please provide your details as they appear on legal photo ID.</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-primary text-xs font-semibold bg-surface-container-low px-3 py-1 rounded-full self-start border border-surface-container-high">
+                          <span className="material-symbols-outlined text-[16px]">schedule</span>
+                          <span>Est. completion: 3 mins</span>
+                        </div>
+                      </div>
 
-          {/* Right Form Area (8 cols) */}
-          <div className="lg:col-span-8 p-6 sm:p-10 flex flex-col justify-between">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* STEP 1: Personal Details */}
-              {step === 1 && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-surface-container-high">
-                    <div>
-                      <h2 className="text-lg font-bold text-on-surface">Personal Information</h2>
-                      <p className="text-xs text-on-surface-variant">Please provide your details as they appear on photo ID.</p>
-                    </div>
-                    <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                      Step 1 of 3
-                    </span>
-                  </div>
+                      <form onSubmit={handleStep1Submit} className="space-y-5">
+                        {/* Legal Names */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="firstName">
+                              First Name <span className="text-error">*</span>
+                            </label>
+                            <input
+                              id="firstName"
+                              type="text"
+                              required
+                              value={firstName}
+                              onChange={(e) => setFirstName(e.target.value)}
+                              placeholder="e.g. Sarah"
+                              className="w-full h-11 px-4 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="lastName">
+                              Last Name <span className="text-error">*</span>
+                            </label>
+                            <input
+                              id="lastName"
+                              type="text"
+                              required
+                              value={lastName}
+                              onChange={(e) => setLastName(e.target.value)}
+                              placeholder="e.g. Jenkins"
+                              className="w-full h-11 px-4 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                            />
+                          </div>
+                        </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-on-surface mb-1">First Name *</label>
-                      <input
-                        type="text"
-                        required
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="e.g. Ananya"
-                        className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl text-xs font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-on-surface mb-1">Last Name *</label>
-                      <input
-                        type="text"
-                        required
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        placeholder="e.g. Verma"
-                        className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl text-xs font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                  </div>
+                        {/* Date of Birth & Phone */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="dob">
+                              Date of Birth (DD / MM / YYYY) <span className="text-error">*</span>
+                            </label>
+                            <div className="relative flex items-center">
+                              <input
+                                id="dob"
+                                type="text"
+                                required
+                                value={dob}
+                                onChange={(e) => setDob(e.target.value)}
+                                placeholder="24 / 08 / 1994"
+                                className="w-full h-11 px-4 pr-10 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                              />
+                              <span className="material-symbols-outlined absolute right-3 text-on-surface-variant pointer-events-none text-[20px]">
+                                calendar_today
+                              </span>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="phone">
+                              Preferred Phone Number <span className="text-error">*</span>
+                            </label>
+                            <div className="relative flex items-center">
+                              <input
+                                id="phone"
+                                type="tel"
+                                required
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                placeholder="(555) 349-8821"
+                                className="w-full h-11 px-4 pr-10 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                              />
+                              <span className="material-symbols-outlined absolute right-3 text-on-surface-variant pointer-events-none text-[20px]">
+                                call
+                              </span>
+                            </div>
+                          </div>
+                        </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-on-surface mb-1">Date of Birth (DD/MM/YYYY) *</label>
-                      <input
-                        type="text"
-                        required
-                        value={dob}
-                        onChange={(e) => setDob(e.target.value)}
-                        placeholder="24 / 08 / 1994"
-                        className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl text-xs font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-on-surface mb-1">Mobile Phone Number *</label>
-                      <input
-                        type="tel"
-                        required
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="(555) 349-8821"
-                        className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl text-xs font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                  </div>
+                        {/* Email Address */}
+                        <div>
+                          <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="email">
+                            Email Address <span className="text-error">*</span>
+                          </label>
+                          <div className="relative flex items-center">
+                            <input
+                              id="email"
+                              type="email"
+                              required
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              placeholder="sarah.jenkins@example.com"
+                              className="w-full h-11 px-4 pr-10 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                            />
+                            <span className="material-symbols-outlined absolute right-3 text-on-surface-variant pointer-events-none text-[20px]">
+                              mail
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-on-surface-variant mt-1">
+                            Used for appointment confirmations, clinical test results, and billing receipts.
+                          </p>
+                        </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1">Email Address *</label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="ananya.verma@example.com"
-                      className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl text-xs font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                    />
-                  </div>
+                        {/* Password Creation & Dynamic Strength Indicator */}
+                        <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high space-y-3">
+                          <div>
+                            <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="password">
+                              Create Secure Password <span className="text-error">*</span>
+                            </label>
+                            <div className="relative flex items-center">
+                              <input
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••••••"
+                                className="w-full h-11 px-4 pr-10 rounded-xl bg-surface-container-lowest text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:outline-none focus:border-primary transition-all"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[20px]">
+                                  {showPassword ? 'visibility_off' : 'visibility'}
+                                </span>
+                              </button>
+                            </div>
+                          </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1">Create Secure Password *</label>
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl text-xs font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                    />
+                          {/* Dynamic Password Check chips */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-[11px]">
+                            <div className={`flex items-center gap-1.5 transition-colors ${
+                              hasMinLength ? 'text-teal-700 font-semibold' : 'text-on-surface-variant'
+                            }`}>
+                              <span className="material-symbols-outlined text-[16px]">
+                                {hasMinLength ? 'check_circle' : 'radio_button_unchecked'}
+                              </span>
+                              <span>Min. 8 characters</span>
+                            </div>
+                            <div className={`flex items-center gap-1.5 transition-colors ${
+                              hasUppercase ? 'text-teal-700 font-semibold' : 'text-on-surface-variant'
+                            }`}>
+                              <span className="material-symbols-outlined text-[16px]">
+                                {hasUppercase ? 'check_circle' : 'radio_button_unchecked'}
+                              </span>
+                              <span>1 uppercase letter</span>
+                            </div>
+                            <div className={`flex items-center gap-1.5 transition-colors ${
+                              hasSymbol ? 'text-teal-700 font-semibold' : 'text-on-surface-variant'
+                            }`}>
+                              <span className="material-symbols-outlined text-[16px]">
+                                {hasSymbol ? 'check_circle' : 'radio_button_unchecked'}
+                              </span>
+                              <span>1 special symbol</span>
+                            </div>
+                          </div>
+                        </div>
 
-                    {/* Real-time rules */}
-                    <div className="flex flex-wrap gap-3 mt-2 text-[11px]">
-                      <span className={`flex items-center gap-1 ${hasMinLength ? 'text-emerald-600 font-semibold' : 'text-outline'}`}>
-                        <span className="material-symbols-outlined text-[14px]">
-                          {hasMinLength ? 'check_circle' : 'radio_button_unchecked'}
-                        </span>
-                        8+ characters
-                      </span>
-                      <span className={`flex items-center gap-1 ${hasUppercase ? 'text-emerald-600 font-semibold' : 'text-outline'}`}>
-                        <span className="material-symbols-outlined text-[14px]">
-                          {hasUppercase ? 'check_circle' : 'radio_button_unchecked'}
-                        </span>
-                        1 uppercase letter
-                      </span>
-                      <span className={`flex items-center gap-1 ${hasSymbol ? 'text-emerald-600 font-semibold' : 'text-outline'}`}>
-                        <span className="material-symbols-outlined text-[14px]">
-                          {hasSymbol ? 'check_circle' : 'radio_button_unchecked'}
-                        </span>
-                        1 special symbol
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
+                        {/* Existing Patient Chart linking */}
+                        <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high space-y-2">
+                          <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={isExistingPatient}
+                              onChange={(e) => setIsExistingPatient(e.target.checked)}
+                              className="w-5 h-5 rounded text-primary accent-primary mt-0.5 cursor-pointer"
+                            />
+                            <div>
+                              <span className="text-xs sm:text-sm font-semibold text-on-surface block">
+                                I am an existing Smile Clinic patient linking my clinic chart
+                              </span>
+                              <span className="text-[11px] text-on-surface-variant block">
+                                Allows our clinic reception to automatically reconcile past diagnostic X-rays & treatments.
+                              </span>
+                            </div>
+                          </label>
 
-              {/* STEP 2: Dental History */}
-              {step === 2 && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-surface-container-high">
-                    <div>
-                      <h2 className="text-lg font-bold text-on-surface">Dental History & Coverage</h2>
-                      <p className="text-xs text-on-surface-variant">Helps us coordinate insurance billing and safety precautions.</p>
-                    </div>
-                    <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                      Step 2 of 3
-                    </span>
-                  </div>
+                          {isExistingPatient && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              className="pt-2 pl-7"
+                            >
+                              <label className="block text-xs font-semibold text-on-surface mb-1">
+                                Existing Patient Chart # (optional)
+                              </label>
+                              <input
+                                type="text"
+                                value={chartNumber}
+                                onChange={(e) => setChartNumber(e.target.value)}
+                                placeholder="e.g. SC-84920"
+                                className="w-full sm:w-72 h-10 px-3 rounded-lg bg-white border border-surface-container-high text-xs font-medium focus:outline-none focus:border-primary"
+                              />
+                              <span className="text-[10px] text-on-surface-variant block mt-1">
+                                Found on previous physical receipts or appointment reminder cards.
+                              </span>
+                            </motion.div>
+                          )}
+                        </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-on-surface mb-1">Primary Dental Insurance</label>
-                      <select
-                        value={insuranceProvider}
-                        onChange={(e) => setInsuranceProvider(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl text-xs font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                      >
-                        <option value="Delta Dental">Delta Dental Premier</option>
-                        <option value="Cigna Dental">Cigna Dental Care</option>
-                        <option value="MetLife">MetLife Dental PDP Plus</option>
-                        <option value="Guardian">Guardian Direct Dental</option>
-                        <option value="Self-Pay">Self-Pay / Smile Clinic Membership</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-on-surface mb-1">Policy / Member ID</label>
-                      <input
-                        type="text"
-                        value={policyNumber}
-                        onChange={(e) => setPolicyNumber(e.target.value)}
-                        placeholder="DD-8849-209"
-                        className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl text-xs font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                  </div>
+                        {/* Primary Dental Insurance Provider */}
+                        <div>
+                          <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="insuranceProvider">
+                            Primary Dental Insurance Provider <span className="text-error">*</span>
+                          </label>
+                          <div className="relative">
+                            <select
+                              id="insuranceProvider"
+                              required
+                              value={insuranceProvider}
+                              onChange={(e) => setInsuranceProvider(e.target.value)}
+                              className="w-full h-11 px-4 pr-10 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:outline-none focus:border-primary appearance-none cursor-pointer"
+                            >
+                              <option value="delta">Delta Dental Premier / PPO</option>
+                              <option value="metlife">MetLife Dental</option>
+                              <option value="cigna">Cigna Dental Network</option>
+                              <option value="aetna">Aetna Dental Advantage</option>
+                              <option value="guardian">Guardian DentalGuard</option>
+                              <option value="humana">Humana Dental Coverage</option>
+                              <option value="united">UnitedHealthcare Dental</option>
+                              <option value="selfpay">Self-Pay / Smile Clinic Membership Plan (No Insurance)</option>
+                            </select>
+                            <span className="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant pointer-events-none text-[20px]">
+                              expand_more
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-on-surface-variant mt-1">
+                            You will have the option to review full coverage and member IDs in Step 2.
+                          </p>
+                        </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1">Known Drug Allergies or Medical Alerts</label>
-                    <input
-                      type="text"
-                      value={allergies}
-                      onChange={(e) => setAllergies(e.target.value)}
-                      placeholder="e.g. Penicillin, Latex, None"
-                      className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl text-xs font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                    />
-                  </div>
+                        {/* Consents */}
+                        <div className="space-y-2 pt-1">
+                          <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              required
+                              checked={agreedTerms}
+                              onChange={(e) => setAgreedTerms(e.target.checked)}
+                              className="w-5 h-5 rounded text-primary accent-primary mt-0.5 cursor-pointer"
+                            />
+                            <span className="text-xs text-on-surface">
+                              I agree to the <a href="#" className="text-primary hover:underline font-semibold">Terms of Service</a> and acknowledge the <a href="#" className="text-primary hover:underline font-semibold">HIPAA Notice of Privacy Practices</a>. <span className="text-error">*</span>
+                            </span>
+                          </label>
+                          <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={receiveSms}
+                              onChange={(e) => setReceiveSms(e.target.checked)}
+                              className="w-5 h-5 rounded text-primary accent-primary mt-0.5 cursor-pointer"
+                            />
+                            <span className="text-xs text-on-surface">
+                              Receive SMS appointment notifications, cleaning reminders, and immediate schedule updates.
+                            </span>
+                          </label>
+                        </div>
 
-                  <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 text-xs text-primary leading-relaxed">
-                    💡 <strong>Smile Clinic Care Guarantee:</strong> We coordinate directly with 30+ major dental insurers so you only pay your eligible copay.
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 3: Verification & Consent */}
-              {step === 3 && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-surface-container-high">
-                    <div>
-                      <h2 className="text-lg font-bold text-on-surface">Security & Verification</h2>
-                      <p className="text-xs text-on-surface-variant">Final step to activate your electronic patient record.</p>
-                    </div>
-                    <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                      Step 3 of 3
-                    </span>
-                  </div>
-
-                  <div className="p-4 bg-surface-container-low rounded-xl space-y-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-on-surface">Verification Phone:</span>
-                      <span className="font-mono text-primary font-bold">{phone || '(555) 349-8821'}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-on-surface">Registered Email:</span>
-                      <span className="font-mono text-primary font-bold">{email || 'ananya.verma@example.com'}</span>
-                    </div>
-                  </div>
-
-                  <label className="flex items-start gap-3 p-3 bg-surface-container-low rounded-xl cursor-pointer select-none border border-surface-container-high">
-                    <input
-                      type="checkbox"
-                      required
-                      checked={agreed}
-                      onChange={(e) => setAgreed(e.target.checked)}
-                      className="mt-0.5 w-4 h-4 rounded text-primary accent-primary cursor-pointer"
-                    />
-                    <span className="text-xs text-on-surface-variant leading-relaxed">
-                      I agree to the <strong>Smile Clinic Terms of Service</strong>, HIPAA Electronic Health Records policy, and consent to receive digital treatment notes and appointment SMS reminders.
-                    </span>
-                  </label>
-                </div>
-              )}
-
-              {/* Buttons */}
-              <div className="flex items-center justify-between pt-4 border-t border-surface-container-high">
-                {step > 1 ? (
-                  <button
-                    type="button"
-                    onClick={() => setStep(step - 1)}
-                    className="px-5 py-2.5 rounded-xl border border-surface-container-high text-xs font-bold text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
-                  >
-                    Back
-                  </button>
-                ) : (
-                  <div></div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-container text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-primary/20 transition-all cursor-pointer"
-                >
-                  {isLoading ? (
-                    <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  ) : (
-                    <>
-                      <span>{step === 3 ? 'Activate Patient Account' : 'Continue'}</span>
-                      <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                    </>
+                        {/* Action CTA */}
+                        <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-surface-container-high">
+                          <button
+                            type="submit"
+                            className="w-full sm:w-auto px-8 h-12 bg-primary hover:bg-primary-container text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-primary/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                          >
+                            <span>Continue to Dental History</span>
+                            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                          </button>
+                          <div className="text-xs text-on-surface-variant flex items-center gap-1.5">
+                            <span>Already have an account?</span>
+                            <Link to="/login" className="text-primary font-bold hover:underline">
+                              Sign in
+                            </Link>
+                          </div>
+                        </div>
+                      </form>
+                    </motion.div>
                   )}
-                </button>
+
+                  {/* ==================== STEP 2: DENTAL HISTORY ==================== */}
+                  {step === 2 && (
+                    <motion.div
+                      key="step2"
+                      initial={{ opacity: 0, x: 15 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -15 }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 gap-2 border-b border-surface-container-high mb-6">
+                        <div>
+                          <h2 className="font-headline font-bold text-xl sm:text-2xl text-on-surface">Dental History & Coverage</h2>
+                          <p className="text-xs text-on-surface-variant mt-0.5">Help our dental doctors tailor your clinical intake and examinations.</p>
+                        </div>
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary self-start">
+                          Step 2 of 3
+                        </span>
+                      </div>
+
+                      <form onSubmit={handleStep2Submit} className="space-y-5">
+                        {/* Primary Reason for Visit */}
+                        <div>
+                          <label className="block text-xs font-bold text-on-surface mb-2 uppercase tracking-wider text-outline">
+                            Primary Reason for Visiting Smile Clinic
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {[
+                              'Routine Cleaning & Comprehensive Exam',
+                              'Toothache / Cavity / Immediate Discomfort',
+                              'Orthodontics & Clear Aligners Consultation',
+                              'Cosmetic Teeth Whitening & Veneers',
+                              'Dental Crown, Bridge or Implant Assessment'
+                            ].map((reason) => (
+                              <button
+                                key={reason}
+                                type="button"
+                                onClick={() => setVisitReason(reason)}
+                                className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all cursor-pointer flex items-center justify-between ${
+                                  visitReason === reason
+                                    ? 'bg-primary text-white border-primary shadow-xs'
+                                    : 'bg-surface-container-low border-surface-container-high text-on-surface hover:bg-surface-container'
+                                }`}
+                              >
+                                <span>{reason}</span>
+                                {visitReason === reason && (
+                                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Last Dental Visit */}
+                        <div>
+                          <label className="block text-xs font-bold text-on-surface mb-2 uppercase tracking-wider text-outline">
+                            When was your last dental hygiene visit or cleaning?
+                          </label>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {[
+                              'Within 6 months',
+                              '6–12 months ago',
+                              '1–2 years ago',
+                              'More than 2 years'
+                            ].map((option) => (
+                              <button
+                                key={option}
+                                type="button"
+                                onClick={() => setLastVisit(option)}
+                                className={`py-2.5 px-3 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer ${
+                                  lastVisit === option
+                                    ? 'bg-primary text-white border-primary shadow-xs'
+                                    : 'bg-surface-container-low border-surface-container-high text-on-surface hover:bg-surface-container'
+                                }`}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Insurance Member ID */}
+                        <div>
+                          <label className="block text-xs font-bold text-on-surface mb-1">
+                            Insurance Member / Subscriber ID
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={insuranceMemberId}
+                            onChange={(e) => setInsuranceMemberId(e.target.value)}
+                            placeholder="e.g. DD-8849-209"
+                            className="w-full h-11 px-4 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:outline-none focus:border-primary"
+                          />
+                        </div>
+
+                        {/* Known Allergies */}
+                        <div>
+                          <label className="block text-xs font-bold text-on-surface mb-2 uppercase tracking-wider text-outline">
+                            Known Medical Allergies & Sensitivity
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {['None', 'Penicillin', 'Latex', 'Local Anesthetics / Lidocaine', 'Sulfa Drugs', 'Codeine', 'Aspirin'].map((item) => {
+                              const active = allergies.includes(item);
+                              return (
+                                <button
+                                  key={item}
+                                  type="button"
+                                  onClick={() => toggleAllergy(item)}
+                                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1 ${
+                                    active
+                                      ? 'bg-primary text-white border-primary shadow-xs'
+                                      : 'bg-surface-container-low text-on-surface border-surface-container-high hover:bg-surface-container'
+                                  }`}
+                                >
+                                  {active && <span className="material-symbols-outlined text-[14px]">check</span>}
+                                  <span>{item}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="pt-4 flex items-center justify-between gap-4 border-t border-surface-container-high">
+                          <button
+                            type="button"
+                            onClick={() => setStep(1)}
+                            className="px-5 h-11 rounded-xl bg-surface-container-low text-on-surface text-xs font-bold hover:bg-surface-container border border-surface-container-high cursor-pointer flex items-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                            <span>Back</span>
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-8 h-12 bg-primary hover:bg-primary-container text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-primary/20 transition-all flex items-center gap-2 cursor-pointer"
+                          >
+                            <span>Continue to Verification</span>
+                            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                          </button>
+                        </div>
+                      </form>
+                    </motion.div>
+                  )}
+
+                  {/* ==================== STEP 3: SECURITY & VERIFICATION ==================== */}
+                  {step === 3 && (
+                    <motion.div
+                      key="step3"
+                      initial={{ opacity: 0, x: 15 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -15 }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 gap-2 border-b border-surface-container-high mb-6">
+                        <div>
+                          <h2 className="font-headline font-bold text-xl sm:text-2xl text-on-surface">Security & Electronic Consent</h2>
+                          <p className="text-xs text-on-surface-variant mt-0.5">Finalize two-factor credentials and authorized digital signatures.</p>
+                        </div>
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 self-start">
+                          Step 3 of 3
+                        </span>
+                      </div>
+
+                      <form onSubmit={handleFinalSubmit} className="space-y-5">
+                        {/* 2FA Preference */}
+                        <div>
+                          <label className="block text-xs font-bold text-on-surface mb-2 uppercase tracking-wider text-outline">
+                            Two-Factor Authentication (2FA) Channel
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label
+                              onClick={() => setTwoFactorMethod('sms')}
+                              className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
+                                twoFactorMethod === 'sms'
+                                  ? 'bg-primary/5 border-primary ring-1 ring-primary'
+                                  : 'bg-surface-container-low border-surface-container-high'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-primary text-[22px]">sms</span>
+                              <div>
+                                <span className="font-bold text-xs sm:text-sm text-on-surface block">SMS One-Time Passcode</span>
+                                <span className="text-[11px] text-on-surface-variant block mt-0.5">Secure SMS code sent to {phone}</span>
+                              </div>
+                            </label>
+
+                            <label
+                              onClick={() => setTwoFactorMethod('app')}
+                              className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
+                                twoFactorMethod === 'app'
+                                  ? 'bg-primary/5 border-primary ring-1 ring-primary'
+                                  : 'bg-surface-container-low border-surface-container-high'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-primary text-[22px]">lock_clock</span>
+                              <div>
+                                <span className="font-bold text-xs sm:text-sm text-on-surface block">Authenticator App (TOTP)</span>
+                                <span className="text-[11px] text-on-surface-variant block mt-0.5">Google Authenticator or 1Password passkey</span>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Preferred Dental Branch */}
+                        <div>
+                          <label className="block text-xs font-bold text-on-surface mb-1">
+                            Primary Smile Clinic Location
+                          </label>
+                          <select
+                            value={preferredBranch}
+                            onChange={(e) => setPreferredBranch(e.target.value)}
+                            className="w-full h-11 px-4 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:outline-none focus:border-primary"
+                          >
+                            <option value="Downtown Main Pavilion (100 Smile Way)">Downtown Main Pavilion (100 Smile Way)</option>
+                            <option value="Northside Specialty & Pediatric Clinic">Northside Specialty & Pediatric Clinic</option>
+                            <option value="Metro Dental Implant & Surgery Suite">Metro Dental Implant & Surgery Suite</option>
+                          </select>
+                        </div>
+
+                        {/* Electronic Signature */}
+                        <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high space-y-2">
+                          <label className="block text-xs font-bold text-on-surface">
+                            Electronic Digital Consent Signature
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={electronicSignature}
+                            onChange={(e) => setElectronicSignature(e.target.value)}
+                            placeholder="Type your full legal name"
+                            className="w-full h-11 px-4 rounded-xl bg-white text-on-surface text-xs sm:text-sm font-semibold border border-surface-container-high focus:outline-none focus:border-primary font-serif tracking-wide"
+                          />
+                          <p className="text-[11px] text-on-surface-variant">
+                            By typing your full legal name, you authorize Smile Clinic to maintain your electronic health records and diagnostic charts under HIPAA guidelines.
+                          </p>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="pt-4 flex items-center justify-between gap-4 border-t border-surface-container-high">
+                          <button
+                            type="button"
+                            onClick={() => setStep(2)}
+                            className="px-5 h-11 rounded-xl bg-surface-container-low text-on-surface text-xs font-bold hover:bg-surface-container border border-surface-container-high cursor-pointer flex items-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                            <span>Back</span>
+                          </button>
+
+                          <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="px-8 h-12 bg-primary hover:bg-primary-container text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-primary/25 hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                          >
+                            {isLoading ? (
+                              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            ) : (
+                              <>
+                                <span>Complete Registration & Enter Portal</span>
+                                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </form>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </form>
+            </div>
+
           </div>
-        </motion.div>
+        </div>
       </main>
 
       {/* Footer */}
-      <footer className="w-full bg-white border-t border-surface-container-high py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-on-surface-variant">
+      <footer className="w-full bg-surface-container-low py-4 border-t border-surface-container-high shadow-[0_-1px_8px_rgba(0,119,130,0.03)] z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-on-surface-variant text-xs">
           <div className="flex items-center gap-1.5">
             <span className="material-symbols-outlined text-[16px] text-tertiary">shield_with_heart</span>
             <span>© 2026 Smile Clinic Health System. All health records encrypted.</span>
           </div>
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex items-center gap-6 text-[11px] font-medium">
             <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
             <a href="#" className="hover:text-primary transition-colors">Patient Rights</a>
           </div>
         </div>
       </footer>
+
+      {/* Floating Home Button */}
+      <Link
+        to="/"
+        className="fixed bottom-6 right-6 bg-primary hover:bg-primary-container text-white px-5 py-3 rounded-full shadow-2xl z-50 flex items-center gap-2 transition-all font-semibold hover:scale-105"
+      >
+        <span className="material-symbols-outlined">home</span>
+        <span>Back to Home</span>
+      </Link>
     </div>
   );
 }
