@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { initialPatientProfile } from '../data/mockData';
+import ToastNotification from '../components/ToastNotification';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface InvoiceItem {
   id: string;
@@ -194,6 +196,9 @@ export default function Billing() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  // Lock background scroll when checkout or PDF preview modal is active
+  useBodyScrollLock(Boolean(payModalOpen || selectedInvoiceForPdf));
+
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setInvoices(invoices.map(inv => ({ ...inv, status: 'Paid' })));
@@ -305,17 +310,7 @@ Thank you for entrusting your dental health to Smile Clinic.
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* PDF / Alert Toast */}
-      {toastMessage && typeof document !== 'undefined' && createPortal(
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl border border-slate-700 text-xs font-semibold flex items-center gap-2.5"
-        >
-          <span className="material-symbols-outlined text-teal-400 text-[20px]">task_alt</span>
-          <span>{toastMessage}</span>
-        </motion.div>,
-        document.body
-      )}
+      <ToastNotification message={toastMessage} onClose={() => setToastMessage(null)} />
 
       {/* Top Financial Overview Hero / Bento Header */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">

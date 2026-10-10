@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import ToastNotification from '../components/ToastNotification';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 interface VisitRecord {
   id: string;
@@ -52,20 +54,13 @@ export default function Dashboard() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  // Lock background scroll when any dashboard modal is active
+  useBodyScrollLock(Boolean(selectedVisit || tipsModalOpen || payModalOpen || rescheduleModalOpen));
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Toast Notification */}
-      {toastMessage && typeof document !== 'undefined' && createPortal(
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl border border-slate-700 text-xs font-semibold flex items-center gap-2.5"
-        >
-          <span className="material-symbols-outlined text-teal-400 text-[20px]">task_alt</span>
-          <span>{toastMessage}</span>
-        </motion.div>,
-        document.body
-      )}
+      <ToastNotification message={toastMessage} onClose={() => setToastMessage(null)} />
 
       {/* Top Section: Welcome Banner & Health Summary (Bento Layout) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">

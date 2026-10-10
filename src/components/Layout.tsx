@@ -3,9 +3,11 @@ import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initialNotifications, initialPatientProfile } from '../data/mockData';
 import { NotificationItem } from '../types';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  useBodyScrollLock(sidebarOpen);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);

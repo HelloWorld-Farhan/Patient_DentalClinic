@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initialPatientProfile } from '../data/mockData';
 import { PatientProfile } from '../types';
+import ToastNotification from '../components/ToastNotification';
 
 export default function Settings() {
   const [profile, setProfile] = useState<PatientProfile>(initialPatientProfile);
@@ -31,17 +32,7 @@ export default function Settings() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Toast Alert */}
-      {toastMessage && typeof document !== 'undefined' && createPortal(
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined text-[18px] text-teal-400">check_circle</span>
-          <span>{toastMessage}</span>
-        </motion.div>,
-        document.body
-      )}
+      <ToastNotification message={toastMessage} onClose={() => setToastMessage(null)} />
 
       {/* Top Banner Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-low p-6 rounded-xl shadow-sm">
