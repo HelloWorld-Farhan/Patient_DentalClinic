@@ -132,55 +132,66 @@ export default function Layout() {
           </nav>
         </div>
 
-        {/* Sidebar Footer - Patient Profile Card, Settings, & Sign Out */}
-        <div className="px-3 mt-auto pt-4 border-t border-surface-container-high/60 space-y-2">
-          {/* Patient Profile Card */}
-          <Link
-            to="/dashboard/settings"
-            onClick={() => setSidebarOpen(false)}
-            className="p-2.5 bg-surface-container-lowest rounded-xl border border-surface-container-high shadow-xs flex items-center gap-2.5 hover:border-primary/40 hover:shadow-sm transition-all group"
-          >
-            <div className="relative w-9 h-9 rounded-full overflow-hidden bg-primary/10 text-primary ring-2 ring-primary/20 shrink-0 flex items-center justify-center font-bold text-xs">
-              <span className="material-symbols-outlined text-[20px] text-primary">account_circle</span>
-              <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-1 ring-white"></span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-bold text-on-surface truncate group-hover:text-primary transition-colors">
-                {initialPatientProfile.name}
+        {/* Sidebar Footer - All-in-One Patient Card with Settings & Sign Out */}
+        <div className="px-3 mt-auto pt-4 border-t border-surface-container-high/60">
+          <div className="p-3 bg-surface-container-lowest rounded-2xl border border-surface-container-high shadow-xs space-y-2.5">
+            {/* User Profile Header (Clickable to Settings) */}
+            <Link
+              to="/dashboard/settings"
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-2.5 group cursor-pointer"
+              title="View & Edit Profile"
+            >
+              <div className="relative w-9 h-9 rounded-full overflow-hidden bg-primary/10 ring-2 ring-primary/20 shrink-0 flex items-center justify-center">
+                <img 
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
+                  alt={initialPatientProfile.name} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                />
+                <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-1 ring-white"></span>
               </div>
-              <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 truncate">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Patient #{initialPatientProfile.id} • Active
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold text-on-surface truncate group-hover:text-primary transition-colors">
+                  {initialPatientProfile.name}
+                </div>
+                <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Patient #{initialPatientProfile.id} • Active
+                </div>
               </div>
+            </Link>
+
+            {/* Subtle Divider */}
+            <div className="h-[1px] bg-surface-container-high/70"></div>
+
+            {/* Integrated Actions: Settings & Logout All In One */}
+            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+              <Link
+                to="/dashboard/settings"
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  location.pathname === '/dashboard/settings'
+                    ? 'bg-primary text-on-primary shadow-xs'
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
+                }`}
+                title="Settings"
+              >
+                <span className="material-symbols-outlined text-[16px]">settings</span>
+                <span>Settings</span>
+              </Link>
+
+              <button
+                onClick={() => {
+                  setSidebarOpen(false);
+                  navigate('/login');
+                }}
+                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-all cursor-pointer"
+                title="Lock / Log Out"
+              >
+                <span className="material-symbols-outlined text-[16px]">logout</span>
+                <span>Log Out</span>
+              </button>
             </div>
-          </Link>
-
-          {/* Settings Button */}
-          <Link
-            to="/dashboard/settings"
-            onClick={() => setSidebarOpen(false)}
-            className={`w-full flex items-center px-3.5 py-2.5 rounded-xl transition-all text-xs font-semibold ${
-              location.pathname === '/dashboard/settings'
-                ? 'bg-primary text-on-primary shadow-xs'
-                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
-            }`}
-          >
-            <span className={`material-symbols-outlined mr-2.5 text-[18px] ${
-              location.pathname === '/dashboard/settings' ? 'text-on-primary' : 'text-primary'
-            }`}>settings</span>
-            Settings
-          </Link>
-
-          {/* Logout Button */}
-          <button 
-            onClick={() => {
-              setSidebarOpen(false);
-              navigate('/login');
-            }} 
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all font-semibold text-xs cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px]">logout</span>
-            Lock / Log Out
-          </button>
+          </div>
         </div>
       </aside>
 
@@ -312,8 +323,13 @@ export default function Layout() {
                   className="flex items-center gap-2 px-1.5 py-0.5 rounded-lg text-left cursor-pointer group"
                   title="Open Settings & Profile"
                 >
-                  <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs shadow-xs group-hover:scale-105 transition-transform">
-                    <span className="material-symbols-outlined text-[18px]">person</span>
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden bg-primary/10 ring-2 ring-primary/20 shrink-0 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <img 
+                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
+                      alt={initialPatientProfile.name} 
+                      className="w-full h-full object-cover" 
+                    />
+                    <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-1 ring-white"></span>
                   </div>
                   <div className="hidden sm:block">
                     <span className="text-xs font-bold text-on-surface block leading-tight group-hover:text-primary transition-colors">
