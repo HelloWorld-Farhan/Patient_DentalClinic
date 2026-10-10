@@ -74,21 +74,27 @@ export default function Layout() {
   return (
     <div className="bg-[#f7fafc] font-sans text-on-surface min-h-screen flex flex-col">
       {/* Mobile Sidebar Backdrop */}
-      {sidebarOpen && (
-        <div 
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 lg:hidden"
-        />
-      )}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-2xs z-[9990] lg:hidden cursor-pointer"
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Sidebar (Desktop Fixed / Mobile Drawer) */}
-      <aside className={`fixed left-0 top-0 h-full w-64 bg-surface-container-low border-r border-surface-container-high z-50 flex flex-col justify-between pt-6 pb-6 transition-transform duration-300 lg:translate-x-0 ${
+      {/* Sidebar (Desktop Fixed / Mobile Drawer Above Header) */}
+      <aside className={`fixed left-0 top-0 h-full w-72 max-w-[85vw] sm:w-64 bg-surface-container-low border-r border-surface-container-high z-[9995] lg:z-30 flex flex-col justify-between pt-6 pb-6 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
       }`}>
         <div>
           {/* Brand Header */}
-          <div className="px-6 mb-8 flex items-center justify-between">
-            <Link to="/dashboard" className="flex items-center gap-3 group">
+          <div className="px-5 sm:px-6 mb-7 flex items-center justify-between">
+            <Link to="/dashboard" onClick={() => setSidebarOpen(false)} className="flex items-center gap-2.5 group">
               <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                 <span className="material-symbols-outlined text-[24px]">dentistry</span>
               </div>
@@ -100,8 +106,11 @@ export default function Layout() {
             
             {/* Mobile Close Button */}
             <button 
+              type="button"
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1.5 text-on-surface-variant hover:text-on-surface rounded-lg hover:bg-surface-container"
+              className="lg:hidden w-8 h-8 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors cursor-pointer"
+              title="Close menu"
+              aria-label="Close menu"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
@@ -212,11 +221,14 @@ export default function Layout() {
           {/* Left: Mobile Toggle & Page Context */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-on-surface hover:bg-surface-container transition-colors"
-              aria-label="Open sidebar"
+              type="button"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden p-2 rounded-xl text-on-surface hover:bg-surface-container transition-colors cursor-pointer flex items-center justify-center"
+              aria-label={sidebarOpen ? "Close sidebar menu" : "Open sidebar menu"}
             >
-              <span className="material-symbols-outlined text-[24px]">menu</span>
+              <span className="material-symbols-outlined text-[24px]">
+                {sidebarOpen ? 'close' : 'menu'}
+              </span>
             </button>
             <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-on-surface-variant">
               <span>Patient Portal</span>
@@ -449,19 +461,17 @@ export default function Layout() {
           </div>
         </header>
 
-        {/* Dynamic Route Content with Smooth Page Change Animation */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
+        {/* Dynamic Route Content with Smooth, Stable Page Transition */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-h-[calc(100vh-140px)]">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.16, ease: "easeOut" }}
+            className="w-full"
+          >
+            <Outlet />
+          </motion.div>
         </main>
 
         {/* Portal Bottom Legal & Support Footer */}
