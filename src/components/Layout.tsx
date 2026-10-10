@@ -114,6 +114,57 @@ export default function Layout() {
             })}
           </nav>
         </div>
+
+        {/* Sidebar Footer - Patient Profile Card, Settings, & Sign Out */}
+        <div className="px-3 mt-auto pt-4 border-t border-surface-container-high/60 space-y-2">
+          {/* Patient Profile Card */}
+          <Link
+            to="/dashboard/settings"
+            onClick={() => setSidebarOpen(false)}
+            className="p-2.5 bg-surface-container-lowest rounded-xl border border-surface-container-high shadow-xs flex items-center gap-2.5 hover:border-primary/40 hover:shadow-sm transition-all group"
+          >
+            <div className="relative w-9 h-9 rounded-full overflow-hidden bg-primary/10 text-primary ring-2 ring-primary/20 shrink-0 flex items-center justify-center font-bold text-xs">
+              <span className="material-symbols-outlined text-[20px] text-primary">account_circle</span>
+              <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-1 ring-white"></span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-bold text-on-surface truncate group-hover:text-primary transition-colors">
+                {initialPatientProfile.name}
+              </div>
+              <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 truncate">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Patient #{initialPatientProfile.id} • Active
+              </div>
+            </div>
+          </Link>
+
+          {/* Settings Button */}
+          <Link
+            to="/dashboard/settings"
+            onClick={() => setSidebarOpen(false)}
+            className={`w-full flex items-center px-3.5 py-2.5 rounded-xl transition-all text-xs font-semibold ${
+              location.pathname === '/dashboard/settings'
+                ? 'bg-primary text-on-primary shadow-xs'
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+            }`}
+          >
+            <span className={`material-symbols-outlined mr-2.5 text-[18px] ${
+              location.pathname === '/dashboard/settings' ? 'text-on-primary' : 'text-primary'
+            }`}>settings</span>
+            Settings
+          </Link>
+
+          {/* Logout Button */}
+          <button 
+            onClick={() => {
+              setSidebarOpen(false);
+              navigate('/login');
+            }} 
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all font-semibold text-xs cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">logout</span>
+            Lock / Log Out
+          </button>
+        </div>
       </aside>
 
       {/* Top Header Bar */}
@@ -290,14 +341,6 @@ export default function Layout() {
                       <span className="material-symbols-outlined text-[18px] text-primary">receipt_long</span>
                       <span>Billing & Payments</span>
                     </Link>
-
-                    <a
-                      href="http://localhost:5173/"
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-[18px] text-secondary">home</span>
-                      <span>Back to Smile Clinic Site</span>
-                    </a>
 
                     <div className="h-[1px] bg-surface-container-high my-1"></div>
 

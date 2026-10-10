@@ -89,20 +89,17 @@ export default function Billing() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* PDF / Alert Toast */}
-      <AnimatePresence>
-        {toastMessage && typeof document !== 'undefined' && createPortal(
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl border border-slate-700 text-xs font-semibold flex items-center gap-2.5"
-          >
-            <span className="material-symbols-outlined text-teal-400 text-[20px]">task_alt</span>
-            <span>{toastMessage}</span>
-          </motion.div>,
-          document.body
-        )}
-      </AnimatePresence>
+      {toastMessage && typeof document !== 'undefined' && createPortal(
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl border border-slate-700 text-xs font-semibold flex items-center gap-2.5"
+        >
+          <span className="material-symbols-outlined text-teal-400 text-[20px]">task_alt</span>
+          <span>{toastMessage}</span>
+        </motion.div>,
+        document.body
+      )}
 
       {/* Top Financial Overview Hero / Bento Header */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
@@ -322,8 +319,7 @@ export default function Billing() {
       </div>
 
       {/* Secure Checkout Modal (Portal with z-[9999]) */}
-      <AnimatePresence>
-        {payModalOpen && typeof document !== 'undefined' && createPortal(
+      {payModalOpen && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0 }}
@@ -439,7 +435,6 @@ export default function Billing() {
           </div>,
           document.body
         )}
-      </AnimatePresence>
     </div>
   );
 }

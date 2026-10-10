@@ -800,15 +800,6 @@ export default function Signup() {
           </div>
         </div>
       </footer>
-
-      {/* Floating Home Button */}
-      <Link
-        to="/"
-        className="fixed bottom-6 right-6 bg-primary hover:bg-primary-container text-white px-5 py-3 rounded-full shadow-2xl z-50 flex items-center gap-2 transition-all font-semibold hover:scale-105"
-      >
-        <span className="material-symbols-outlined">home</span>
-        <span>Back to Home</span>
-      </Link>
     </div>
   );
 }
