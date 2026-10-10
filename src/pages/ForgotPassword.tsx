@@ -527,10 +527,11 @@ export default function ForgotPassword() {
             <span className="material-symbols-outlined text-[16px] text-tertiary">shield_with_heart</span>
             <span>© 2026 Smile Clinic Health System. All health records encrypted.</span>
           </div>
-          <div className="flex items-center gap-4 text-[11px]">
-            <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-primary transition-colors">HIPAA Standards</a>
-            <a href="#" className="hover:text-primary transition-colors">Security Help</a>
+          <div className="flex items-center gap-5 text-[11px] font-medium">
+            <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+            <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
+            <Link to="/patient-rights" className="hover:text-primary transition-colors">Patient Rights</Link>
+            <Link to="/support" className="hover:text-primary transition-colors">Support</Link>
           </div>
         </div>
       </footer>

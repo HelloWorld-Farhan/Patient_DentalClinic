@@ -90,13 +90,13 @@ export default function Signup() {
               <span className="material-symbols-outlined text-[16px] text-primary">verified_user</span>
               <span>HIPAA Compliant 256-Bit SSL</span>
             </div>
-            <a
-              href="tel:5552345678"
+            <Link
+              to="/support"
               className="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors text-xs font-semibold"
             >
               <span className="material-symbols-outlined text-[18px]">help_outline</span>
               <span>Support</span>
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -477,7 +477,7 @@ export default function Signup() {
                               className="w-5 h-5 rounded text-primary accent-primary mt-0.5 cursor-pointer"
                             />
                             <span className="text-xs text-on-surface">
-                              I agree to the <a href="#" className="text-primary hover:underline font-semibold">Terms of Service</a> and acknowledge the <a href="#" className="text-primary hover:underline font-semibold">HIPAA Notice of Privacy Practices</a>. <span className="text-error">*</span>
+                              I agree to the <Link to="/terms-of-service" target="_blank" className="text-primary hover:underline font-semibold">Terms of Service</Link> and acknowledge the <Link to="/privacy-policy" target="_blank" className="text-primary hover:underline font-semibold">HIPAA Notice of Privacy Practices</Link>. <span className="text-error">*</span>
                             </span>
                           </label>
                           <label className="flex items-start gap-2.5 cursor-pointer select-none">
@@ -794,9 +794,9 @@ export default function Signup() {
             <span>© 2026 Smile Clinic Health System. All health records encrypted.</span>
           </div>
           <div className="flex items-center gap-6 text-[11px] font-medium">
-            <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-primary transition-colors">Patient Rights</a>
+            <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+            <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
+            <Link to="/patient-rights" className="hover:text-primary transition-colors">Patient Rights</Link>
           </div>
         </div>
       </footer>

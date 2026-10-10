@@ -49,7 +49,8 @@ export default function Layout() {
     { name: 'Dashboard', path: '/dashboard', icon: 'dashboard', end: true },
     { name: 'Appointments', path: '/dashboard/appointments', icon: 'calendar_month' },
     { name: 'Records', path: '/dashboard/records', icon: 'medical_services' },
-    { name: 'Billing', path: '/dashboard/billing', icon: 'receipt_long' }
+    { name: 'Billing', path: '/dashboard/billing', icon: 'receipt_long' },
+    { name: 'Support', path: '/dashboard/support', icon: 'support_agent' }
   ];
 
   return (
@@ -88,8 +89,8 @@ export default function Layout() {
             </button>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="px-3 space-y-1">
+          {/* Navigation Links with Framer Motion Sliding Tab Highlight */}
+          <nav className="px-3 space-y-1 relative">
             {navLinks.map((link) => {
               const isActive = link.end 
                 ? location.pathname === link.path 
@@ -99,16 +100,30 @@ export default function Layout() {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  onClick={() => setSidebarOpen(false)}
+                  className={`relative flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-colors duration-200 z-10 ${
                     isActive
-                      ? 'bg-primary text-on-primary shadow-sm shadow-primary/20'
-                      : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                      ? 'text-on-primary'
+                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/60'
                   }`}
                 >
-                  <span className={`material-symbols-outlined mr-3 text-[20px] ${isActive ? 'text-on-primary' : 'text-primary'}`}>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeNavHighlight"
+                      className="absolute inset-0 bg-primary rounded-xl shadow-md shadow-primary/25 z-0"
+                      transition={{
+                        type: 'spring',
+                        stiffness: 420,
+                        damping: 32
+                      }}
+                    />
+                  )}
+                  <span className={`material-symbols-outlined mr-3 text-[20px] relative z-10 transition-colors duration-200 ${
+                    isActive ? 'text-on-primary' : 'text-primary'
+                  }`}>
                     {link.icon}
                   </span>
-                  <span>{link.name}</span>
+                  <span className="relative z-10">{link.name}</span>
                 </Link>
               );
             })}
@@ -193,12 +208,22 @@ export default function Layout() {
             {/* 24/7 Dental Emergency Hotline */}
             <a
               href="tel:5552345678"
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold hover:bg-emerald-100 transition-colors"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold hover:bg-emerald-100 transition-colors"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>Emergency 24/7:</span>
               <span className="font-bold">(555) 234-5678</span>
             </a>
+
+            {/* Support Desk Direct Link */}
+            <Link
+              to="/dashboard/support"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors text-xs font-semibold"
+              title="Patient Support & Clinical Helpdesk"
+            >
+              <span className="material-symbols-outlined text-[18px] text-primary">help_outline</span>
+              <span className="hidden sm:inline">Support</span>
+            </Link>
 
             {/* Notification Bell Dropdown */}
             <div className="relative" ref={notifDropdownRef}>
@@ -342,6 +367,24 @@ export default function Layout() {
                       <span>Billing & Payments</span>
                     </Link>
 
+                    <Link
+                      to="/dashboard/support"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[18px] text-primary">support_agent</span>
+                      <span>Support & Helpdesk</span>
+                    </Link>
+
+                    <Link
+                      to="/dashboard/patient-rights"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[18px] text-primary">assignment_turned_in</span>
+                      <span>Patient Rights</span>
+                    </Link>
+
                     <div className="h-[1px] bg-surface-container-high my-1"></div>
 
                     <button
@@ -365,6 +408,22 @@ export default function Layout() {
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
+
+        {/* Portal Bottom Legal & Support Footer */}
+        <footer className="w-full bg-surface-container-low py-4 border-t border-surface-container-high px-4 sm:px-6 lg:px-8 mt-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-on-surface-variant text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px] text-tertiary">shield_with_heart</span>
+              <span>© 2026 Smile Clinic Health System. All health records encrypted.</span>
+            </div>
+            <div className="flex items-center gap-6 text-[11px] font-medium">
+              <Link to="/dashboard/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+              <Link to="/dashboard/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
+              <Link to="/dashboard/patient-rights" className="hover:text-primary transition-colors">Patient Rights</Link>
+              <Link to="/dashboard/support" className="hover:text-primary transition-colors">Support Desk</Link>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

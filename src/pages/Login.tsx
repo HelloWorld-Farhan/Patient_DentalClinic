@@ -44,13 +44,13 @@ export default function Login() {
               <span className="material-symbols-outlined text-[16px] text-primary">verified_user</span>
               <span>HIPAA Compliant 256-Bit SSL</span>
             </div>
-            <a
-              href="tel:5552345678"
+            <Link
+              to="/support"
               className="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors text-xs font-semibold"
             >
               <span className="material-symbols-outlined text-[18px]">help_outline</span>
               <span>Support</span>
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -317,9 +317,9 @@ export default function Login() {
             <span>© 2026 Smile Clinic Health System. All health records encrypted.</span>
           </div>
           <div className="flex items-center gap-6 text-[11px] font-medium">
-            <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-primary transition-colors">Patient Rights</a>
+            <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+            <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
+            <Link to="/patient-rights" className="hover:text-primary transition-colors">Patient Rights</Link>
           </div>
         </div>
       </footer>

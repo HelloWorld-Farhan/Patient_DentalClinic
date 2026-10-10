@@ -9,6 +9,10 @@ import Appointments from './pages/Appointments';
 import DentalRecords from './pages/DentalRecords';
 import Billing from './pages/Billing';
 import Settings from './pages/Settings';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import PatientRights from './pages/PatientRights';
+import Support from './pages/Support';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -23,6 +27,12 @@ function AnimatedRoutes() {
         <Route path="/register" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
+        {/* Informational & Support Routes */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/patient-rights" element={<PatientRights />} />
+        <Route path="/support" element={<Support />} />
+
         {/* Protected Patient Portal Routes */}
         <Route path="/dashboard" element={<Layout />}>
           <Route index element={<Dashboard />} />
@@ -30,6 +40,10 @@ function AnimatedRoutes() {
           <Route path="records" element={<DentalRecords />} />
           <Route path="billing" element={<Billing />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="support" element={<Support />} />
+          <Route path="privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="terms-of-service" element={<TermsOfService />} />
+          <Route path="patient-rights" element={<PatientRights />} />
         </Route>
 
         {/* Fallback */}
