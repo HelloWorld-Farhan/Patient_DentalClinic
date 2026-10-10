@@ -40,10 +40,10 @@ function AnimatedRoutes() {
           <Route path="records" element={<DentalRecords />} />
           <Route path="billing" element={<Billing />} />
           <Route path="settings" element={<Settings />} />
-          <Route path="support" element={<Support />} />
-          <Route path="privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="terms-of-service" element={<TermsOfService />} />
-          <Route path="patient-rights" element={<PatientRights />} />
+          <Route path="support" element={<Navigate to="/support" replace />} />
+          <Route path="privacy-policy" element={<Navigate to="/privacy-policy" replace />} />
+          <Route path="terms-of-service" element={<Navigate to="/terms-of-service" replace />} />
+          <Route path="patient-rights" element={<Navigate to="/patient-rights" replace />} />
         </Route>
 
         {/* Fallback */}

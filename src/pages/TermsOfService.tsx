@@ -9,7 +9,7 @@ export default function TermsOfService() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-surface-container-high shadow-xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 group">
+          <Link to="/dashboard" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
               <span className="material-symbols-outlined text-[24px]">dentistry</span>
             </div>
@@ -28,7 +28,13 @@ export default function TermsOfService() {
               <span>Print Terms</span>
             </button>
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/dashboard');
+                }
+              }}
               className="flex items-center gap-1 px-3.5 py-1.5 bg-primary text-white hover:bg-primary-container text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">arrow_back</span>
@@ -132,11 +138,11 @@ export default function TermsOfService() {
 
       {/* Footer */}
       <footer className="w-full bg-white border-t border-surface-container-high py-6 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-on-surface-variant">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-on-surface-variant text-center sm:text-left">
           <span>© 2026 Smile Clinic Health System. All health records encrypted under HIPAA standards.</span>
-          <div className="flex items-center gap-6 font-semibold">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 sm:gap-6 font-semibold">
             <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
-            <Link to="/terms-of-service" className="text-primary font-bold">Terms of Service</Link>
+            <span className="text-primary font-bold">Terms of Service</span>
             <Link to="/patient-rights" className="hover:text-primary transition-colors">Patient Rights</Link>
             <Link to="/support" className="hover:text-primary transition-colors">Support & Help Desk</Link>
           </div>

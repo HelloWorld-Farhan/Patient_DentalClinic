@@ -9,7 +9,7 @@ export default function PatientRights() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-surface-container-high shadow-xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 group">
+          <Link to="/dashboard" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
               <span className="material-symbols-outlined text-[24px]">dentistry</span>
             </div>
@@ -28,7 +28,13 @@ export default function PatientRights() {
               <span>Print Rights</span>
             </button>
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/dashboard');
+                }
+              }}
               className="flex items-center gap-1 px-3.5 py-1.5 bg-primary text-white hover:bg-primary-container text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">arrow_back</span>
@@ -203,15 +209,15 @@ export default function PatientRights() {
 
       {/* Footer */}
       <footer className="w-full bg-surface-container-low py-4 border-t border-surface-container-high">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-on-surface-variant text-xs">
-          <div className="flex items-center gap-1.5">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-on-surface-variant text-xs text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-1.5">
             <span className="material-symbols-outlined text-[16px] text-tertiary">shield_with_heart</span>
             <span>© 2026 Smile Clinic Health System. All health records encrypted.</span>
           </div>
-          <div className="flex items-center gap-6 text-[11px] font-medium">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 sm:gap-6 text-[11px] font-medium">
             <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
             <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
-            <Link to="/patient-rights" className="text-primary font-bold">Patient Rights</Link>
+            <span className="text-primary font-bold">Patient Rights</span>
             <Link to="/support" className="hover:text-primary transition-colors">Support</Link>
           </div>
         </div>

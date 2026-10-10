@@ -51,8 +51,7 @@ export default function Layout() {
     { name: 'Dashboard', path: '/dashboard', icon: 'dashboard', end: true },
     { name: 'Appointments', path: '/dashboard/appointments', icon: 'calendar_month' },
     { name: 'Records', path: '/dashboard/records', icon: 'medical_services' },
-    { name: 'Billing', path: '/dashboard/billing', icon: 'receipt_long' },
-    { name: 'Support', path: '/dashboard/support', icon: 'support_agent' }
+    { name: 'Billing', path: '/dashboard/billing', icon: 'receipt_long' }
   ];
 
   return (
@@ -230,7 +229,7 @@ export default function Layout() {
 
             {/* Support Desk Direct Link */}
             <Link
-              to="/dashboard/support"
+              to="/support"
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors text-xs font-semibold"
               title="Patient Support & Clinical Helpdesk"
             >
@@ -386,7 +385,7 @@ export default function Layout() {
                     </Link>
 
                     <Link
-                      to="/dashboard/support"
+                      to="/support"
                       onClick={() => setProfileOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors"
                     >
@@ -395,7 +394,7 @@ export default function Layout() {
                     </Link>
 
                     <Link
-                      to="/dashboard/patient-rights"
+                      to="/patient-rights"
                       onClick={() => setProfileOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors"
                     >
@@ -429,16 +428,16 @@ export default function Layout() {
 
         {/* Portal Bottom Legal & Support Footer */}
         <footer className="w-full bg-surface-container-low py-4 border-t border-surface-container-high px-4 sm:px-6 lg:px-8 mt-auto">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-on-surface-variant text-xs">
-            <div className="flex items-center gap-1.5">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-on-surface-variant text-xs text-center sm:text-left">
+            <div className="flex items-center justify-center sm:justify-start gap-1.5">
               <span className="material-symbols-outlined text-[16px] text-tertiary">shield_with_heart</span>
               <span>© 2026 Smile Clinic Health System. All health records encrypted.</span>
             </div>
-            <div className="flex items-center gap-6 text-[11px] font-medium">
-              <Link to="/dashboard/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
-              <Link to="/dashboard/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
-              <Link to="/dashboard/patient-rights" className="hover:text-primary transition-colors">Patient Rights</Link>
-              <Link to="/dashboard/support" className="hover:text-primary transition-colors">Support Desk</Link>
+            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 sm:gap-6 text-[11px] font-medium">
+              <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+              <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
+              <Link to="/patient-rights" className="hover:text-primary transition-colors">Patient Rights</Link>
+              <Link to="/support" className="hover:text-primary transition-colors">Support Desk</Link>
             </div>
           </div>
         </footer>
