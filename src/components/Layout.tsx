@@ -107,8 +107,8 @@ export default function Layout() {
             </button>
           </div>
 
-          {/* Navigation Links with Framer Motion Sliding Tab Highlight */}
-          <nav className="px-3 space-y-1 relative">
+          {/* Navigation Links */}
+          <nav className="px-3 space-y-1.5 relative">
             {navLinks.map((link) => {
               const isActive = link.end 
                 ? location.pathname === link.path 
@@ -119,29 +119,23 @@ export default function Layout() {
                   key={link.path}
                   to={link.path}
                   onClick={() => setSidebarOpen(false)}
-                  className={`relative flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-colors duration-200 z-10 ${
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
                     isActive
-                      ? 'text-on-primary'
-                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/60'
+                      ? 'bg-primary text-white shadow-md shadow-primary/25 font-bold'
+                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container/70'
                   }`}
                 >
+                  <div className="flex items-center">
+                    <span className={`material-symbols-outlined mr-3 text-[20px] transition-colors duration-200 ${
+                      isActive ? 'text-white' : 'text-primary'
+                    }`}>
+                      {link.icon}
+                    </span>
+                    <span>{link.name}</span>
+                  </div>
                   {isActive && (
-                    <motion.div
-                      layoutId="activeNavHighlight"
-                      className="absolute inset-0 bg-primary rounded-xl shadow-md shadow-primary/25 z-0"
-                      transition={{
-                        type: 'spring',
-                        stiffness: 420,
-                        damping: 32
-                      }}
-                    />
+                    <span className="w-2 h-2 rounded-full bg-white shadow-xs" />
                   )}
-                  <span className={`material-symbols-outlined mr-3 text-[20px] relative z-10 transition-colors duration-200 ${
-                    isActive ? 'text-on-primary' : 'text-primary'
-                  }`}>
-                    {link.icon}
-                  </span>
-                  <span className="relative z-10">{link.name}</span>
                 </Link>
               );
             })}
@@ -455,9 +449,19 @@ export default function Layout() {
           </div>
         </header>
 
-        {/* Dynamic Route Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          <Outlet />
+        {/* Dynamic Route Content with Smooth Page Change Animation */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
 
         {/* Portal Bottom Legal & Support Footer */}

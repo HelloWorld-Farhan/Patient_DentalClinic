@@ -38,6 +38,14 @@ export default function LegalPageHeader({
     navigate('/dashboard');
   };
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (notifDropdownRef.current && !notifDropdownRef.current.contains(e.target as Node)) {
@@ -207,15 +215,6 @@ export default function LegalPageHeader({
                 </AnimatePresence>
               </div>
 
-              <Link
-                to="/dashboard"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-primary hover:bg-primary-tint border border-primary/20 transition-all shadow-xs shrink-0"
-              >
-                <span className="material-symbols-outlined text-[16px]">dashboard</span>
-                <span className="hidden sm:inline">Portal Dashboard</span>
-                <span className="sm:hidden">Dashboard</span>
-              </Link>
-
               {/* Patient Badge */}
               <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface-container-low border border-surface-container-high text-xs shrink-0">
                 <div className="w-5 h-5 rounded-full overflow-hidden bg-primary/10 ring-1 ring-primary/30">
@@ -229,11 +228,12 @@ export default function LegalPageHeader({
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               </div>
 
-              {/* Back to Dashboard Button */}
+              {/* Single Back Button with History Redirection */}
               <button
                 type="button"
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-1 px-3.5 py-1.5 bg-primary text-white hover:bg-primary-container text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer shrink-0"
+                onClick={handleBack}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary text-white hover:bg-primary-container text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer shrink-0"
+                title="Back to previous page"
               >
                 <span className="material-symbols-outlined text-[16px]">arrow_back</span>
                 <span className="hidden sm:inline">Back to Dashboard</span>
