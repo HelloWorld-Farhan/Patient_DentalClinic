@@ -55,6 +55,7 @@ export default function Signup() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
+      localStorage.setItem('smileclinic_patient_auth', 'true');
       navigate('/dashboard');
     }, 600);
   };
@@ -788,15 +789,16 @@ export default function Signup() {
 
       {/* Footer */}
       <footer className="w-full bg-surface-container-low py-4 border-t border-surface-container-high shadow-[0_-1px_8px_rgba(0,119,130,0.03)] z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-on-surface-variant text-xs">
-          <div className="flex items-center gap-1.5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-on-surface-variant text-xs text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-1.5">
             <span className="material-symbols-outlined text-[16px] text-tertiary">shield_with_heart</span>
             <span>© 2026 Smile Clinic Health System. All health records encrypted.</span>
           </div>
-          <div className="flex items-center gap-6 text-[11px] font-medium">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 sm:gap-6 text-[11px] font-medium">
             <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
             <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
             <Link to="/patient-rights" className="hover:text-primary transition-colors">Patient Rights</Link>
+            <Link to="/support" className="hover:text-primary transition-colors">Support Desk</Link>
           </div>
         </div>
       </footer>

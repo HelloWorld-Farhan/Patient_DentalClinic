@@ -1,48 +1,17 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import LegalPageHeader from '../components/LegalPageHeader';
 
 export default function TermsOfService() {
-  const navigate = useNavigate();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
 
   return (
     <div className="bg-[#f7fafc] font-sans text-on-surface min-h-screen flex flex-col justify-between selection:bg-secondary-fixed selection:text-on-secondary-fixed">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-surface-container-high shadow-xs">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-              <span className="material-symbols-outlined text-[24px]">dentistry</span>
-            </div>
-            <div>
-              <span className="font-headline font-bold text-lg text-primary block leading-none">Smile Clinic</span>
-              <span className="text-[10px] text-secondary font-semibold uppercase tracking-wider">Patient Portal</span>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => window.print()}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-semibold rounded-lg border border-surface-container-high transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]">print</span>
-              <span>Print Terms</span>
-            </button>
-            <button
-              onClick={() => {
-                if (window.history.length > 1) {
-                  navigate(-1);
-                } else {
-                  navigate('/dashboard');
-                }
-              }}
-              className="flex items-center gap-1 px-3.5 py-1.5 bg-primary text-white hover:bg-primary-container text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-              <span>Back</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Top Header with Adaptive Auth & Dashboard Navigation */}
+      <LegalPageHeader title="Terms of Service" showPrintButton={true} />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1">

@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import ScrollToTop from './components/ScrollToTop';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
@@ -56,6 +57,7 @@ function AnimatedRoutes() {
 export default function App() {
   return (
     <Router>
+      <ScrollToTop />
       <AnimatedRoutes />
     </Router>
   );

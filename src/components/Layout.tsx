@@ -181,6 +181,7 @@ export default function Layout() {
               <button
                 onClick={() => {
                   setSidebarOpen(false);
+                  localStorage.removeItem('smileclinic_patient_auth');
                   navigate('/login');
                 }}
                 className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-all cursor-pointer"
@@ -407,6 +408,7 @@ export default function Layout() {
                     <button
                       onClick={() => {
                         setProfileOpen(false);
+                        localStorage.removeItem('smileclinic_patient_auth');
                         navigate('/login');
                       }}
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-error hover:bg-error-container/20 transition-colors cursor-pointer text-left"

@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import LegalPageHeader from '../components/LegalPageHeader';
 
 export default function Support() {
   const navigate = useNavigate();
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
 
   const [formData, setFormData] = useState({
     name: 'Eleanor Vance',
@@ -47,44 +52,8 @@ export default function Support() {
 
   return (
     <div className="bg-[#f7fafc] font-sans text-on-surface min-h-screen flex flex-col justify-between selection:bg-secondary-fixed selection:text-on-secondary-fixed">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-surface-container-high shadow-xs">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-              <span className="material-symbols-outlined text-[24px]">dentistry</span>
-            </div>
-            <div>
-              <span className="font-headline font-bold text-lg text-primary block leading-none">Smile Clinic</span>
-              <span className="text-[10px] text-secondary font-semibold uppercase tracking-wider">Patient Portal</span>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <a
-              href="tel:5552345678"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-100 transition-colors"
-            >
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-              <span>Emergency 24/7:</span>
-              <span className="font-bold">(555) 234-5678</span>
-            </a>
-            <button
-              onClick={() => {
-                if (window.history.length > 1) {
-                  navigate(-1);
-                } else {
-                  navigate('/dashboard');
-                }
-              }}
-              className="flex items-center gap-1 px-3.5 py-1.5 bg-primary text-white hover:bg-primary-container text-xs font-bold rounded-lg transition-all shadow-xs cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-              <span>Back</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Top Header with Adaptive Auth & Dashboard Navigation */}
+      <LegalPageHeader title="Support & Helpdesk" showPrintButton={false} />
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex-1 w-full">
