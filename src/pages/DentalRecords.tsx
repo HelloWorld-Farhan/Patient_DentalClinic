@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initialOdontogramTeeth, initialClinicalNotes, initialRadiographs } from '../data/mockData';
 import { OdontogramTooth, DentalRadiograph } from '../types';
@@ -53,16 +54,17 @@ export default function DentalRecords() {
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Toast Alert */}
       <AnimatePresence>
-        {toastMessage && (
+        {toastMessage && typeof document !== 'undefined' && createPortal(
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
+            className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-[18px] text-teal-400">check_circle</span>
             <span>{toastMessage}</span>
-          </motion.div>
+          </motion.div>,
+          document.body
         )}
       </AnimatePresence>
 
@@ -319,41 +321,64 @@ export default function DentalRecords() {
 
       {/* Lightbox Modal for Radiographs */}
       <AnimatePresence>
-        {activeLightboxImage && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        {activeLightboxImage && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-slate-900 border border-slate-700 rounded-3xl max-w-4xl w-full p-6 text-white space-y-4 shadow-2xl relative"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/85 backdrop-blur-lg"
+              onClick={() => {
+                setActiveLightboxImage(null);
+                setZoomLevel(1);
+              }}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative bg-slate-900 border border-slate-700 rounded-3xl max-w-4xl w-full text-white shadow-2xl overflow-hidden flex flex-col z-10 my-auto max-h-[92vh]"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <div>
-                  <h3 className="font-headline font-bold text-base text-white">{activeLightboxImage.title}</h3>
-                  <span className="text-xs text-slate-400">{activeLightboxImage.date} • {activeLightboxImage.dentist} • {activeLightboxImage.resolution}</span>
+              <div className="p-4 sm:p-6 border-b border-slate-800 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 text-teal-400 flex items-center justify-center shadow-xs shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">radiology</span>
+                  </div>
+                  <div>
+                    <h3 className="font-headline font-bold text-base sm:text-lg text-white">{activeLightboxImage.title}</h3>
+                    <span className="text-xs text-slate-400 block">{activeLightboxImage.date} • {activeLightboxImage.dentist} • {activeLightboxImage.resolution}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <button 
+                    type="button"
                     onClick={() => setZoomLevel(prev => Math.min(prev + 0.25, 2.5))}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white cursor-pointer"
+                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white cursor-pointer transition-colors"
                     title="Zoom in"
+                    aria-label="Zoom in"
                   >
                     <span className="material-symbols-outlined text-[18px]">zoom_in</span>
                   </button>
                   <button 
+                    type="button"
                     onClick={() => setZoomLevel(prev => Math.max(prev - 0.25, 0.75))}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white cursor-pointer"
+                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white cursor-pointer transition-colors"
                     title="Zoom out"
+                    aria-label="Zoom out"
                   >
                     <span className="material-symbols-outlined text-[18px]">zoom_out</span>
                   </button>
                   <button 
+                    type="button"
                     onClick={() => {
                       setActiveLightboxImage(null);
                       setZoomLevel(1);
                     }}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
+                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer transition-colors"
                     title="Close viewer"
+                    aria-label="Close dialog"
                   >
                     <span className="material-symbols-outlined text-[18px]">close</span>
                   </button>
@@ -361,7 +386,7 @@ export default function DentalRecords() {
               </div>
 
               {/* Viewport */}
-              <div className="h-[420px] w-full overflow-hidden bg-black/90 rounded-2xl flex items-center justify-center relative">
+              <div className="h-[420px] w-full overflow-hidden bg-black/90 flex items-center justify-center relative flex-1">
                 <img 
                   src={activeLightboxImage.imageUrl} 
                   alt={activeLightboxImage.title} 
@@ -370,22 +395,24 @@ export default function DentalRecords() {
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-300 pt-2">
+              <div className="p-4 sm:p-6 bg-slate-950/70 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-300 shrink-0">
                 <p className="max-w-xl text-[11px] leading-relaxed">
                   {activeLightboxImage.description}
                 </p>
                 <button
+                  type="button"
                   onClick={() => {
                     showToast(`High-resolution radiograph exported successfully!`);
                     setActiveLightboxImage(null);
                   }}
-                  className="px-4 py-2 bg-primary hover:bg-primary-container text-white font-bold rounded-xl shadow-md transition-all cursor-pointer shrink-0"
+                  className="px-5 py-2.5 bg-primary hover:bg-primary-container text-white font-bold rounded-xl shadow-md transition-all cursor-pointer shrink-0"
                 >
                   Download Original DICOM
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
     </div>

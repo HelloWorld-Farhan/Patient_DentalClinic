@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initialPatientProfile } from '../data/mockData';
 import { PatientProfile } from '../types';
@@ -25,16 +26,17 @@ export default function Settings() {
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Toast Alert */}
       <AnimatePresence>
-        {toastMessage && (
+        {toastMessage && typeof document !== 'undefined' && createPortal(
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
+            className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-[18px] text-teal-400">check_circle</span>
             <span>{toastMessage}</span>
-          </motion.div>
+          </motion.div>,
+          document.body
         )}
       </AnimatePresence>
 

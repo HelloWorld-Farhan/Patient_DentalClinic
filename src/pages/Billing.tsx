@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initialPatientProfile, initialInvoices } from '../data/mockData';
 import { Invoice } from '../types';
@@ -35,16 +36,17 @@ export default function Billing() {
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Toast Alert */}
       <AnimatePresence>
-        {toastMessage && (
+        {toastMessage && typeof document !== 'undefined' && createPortal(
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
+            className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-[18px] text-teal-400">check_circle</span>
             <span>{toastMessage}</span>
-          </motion.div>
+          </motion.div>,
+          document.body
         )}
       </AnimatePresence>
 
@@ -194,54 +196,81 @@ export default function Billing() {
 
       {/* Pay Statement Modal */}
       <AnimatePresence>
-        {payModalOpen && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        {payModalOpen && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high max-w-sm w-full p-6 space-y-4 text-xs"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md"
+              onClick={() => setPayModalOpen(false)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high max-w-md w-full overflow-hidden flex flex-col z-10 my-auto text-xs"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-surface-container-high">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-emerald-600 text-[22px]">payments</span>
-                  <h3 className="font-headline font-bold text-base text-on-surface">Authorize Payment</h3>
+              <div className="p-4 sm:p-6 border-b border-surface-container-low flex justify-between items-center bg-surface-container-lowest shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shadow-xs shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">payments</span>
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-on-surface">Authorize Payment</h2>
+                    <p className="text-xs text-outline">Encrypted 256-bit checkout gateway</p>
+                  </div>
                 </div>
-                <button onClick={() => setPayModalOpen(false)} className="p-1 text-outline">
-                  <span className="material-symbols-outlined text-[18px]">close</span>
+                <button
+                  type="button"
+                  onClick={() => setPayModalOpen(false)}
+                  className="p-2 text-outline hover:text-on-surface hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer shrink-0"
+                  aria-label="Close dialog"
+                >
+                  <span className="material-symbols-outlined text-[20px]">close</span>
                 </button>
               </div>
 
-              <div className="p-4 bg-surface-container-low rounded-xl space-y-1.5 text-center">
-                <span className="text-on-surface-variant">Outstanding Statement Total</span>
-                <div className="text-2xl font-extrabold text-on-surface font-mono">${pendingAmount.toFixed(2)}</div>
-                <span className="text-[11px] text-primary block">Encrypted 256-Bit Payment Gateway</span>
-              </div>
+              <div className="p-4 sm:p-6 space-y-4">
+                <div className="p-4 bg-surface-container-low rounded-xl space-y-1.5 text-center border border-surface-container-high">
+                  <span className="text-on-surface-variant">Outstanding Statement Total</span>
+                  <div className="text-3xl font-extrabold text-on-surface font-mono">${pendingAmount.toFixed(2)}</div>
+                  <span className="text-[11px] text-primary block font-medium">✓ Fully eligible for HSA / FSA reimbursement</span>
+                </div>
 
-              <div>
-                <label className="block font-bold text-on-surface mb-1">Select Payment Card</label>
-                <div className="p-3 bg-surface-container-low rounded-xl border border-surface-container-high flex items-center justify-between">
-                  <span className="font-bold text-on-surface">Visa ending in •••• 4092</span>
-                  <span className="text-[10px] text-outline">Expires 09/28</span>
+                <div>
+                  <label className="block font-bold text-on-surface mb-1">Select Payment Card</label>
+                  <div className="p-3 bg-surface-container-low rounded-xl border border-surface-container-high flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="material-symbols-outlined text-primary text-[20px]">credit_card</span>
+                      <span className="font-bold text-on-surface">Visa ending in •••• 4092</span>
+                    </div>
+                    <span className="text-[10px] text-outline font-medium">Expires 09/28</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="p-4 sm:p-6 bg-surface-container-low/50 border-t border-surface-container-low flex justify-end gap-3 shrink-0">
                 <button
+                  type="button"
                   onClick={() => setPayModalOpen(false)}
-                  className="px-4 py-2 bg-surface-container-high text-on-surface font-bold rounded-xl cursor-pointer"
+                  className="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container text-on-surface font-bold rounded-xl cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={handlePayBalance}
-                  className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-md transition-all cursor-pointer"
+                  className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-md transition-all cursor-pointer"
                 >
                   Confirm & Pay ${pendingAmount.toFixed(2)}
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
     </div>

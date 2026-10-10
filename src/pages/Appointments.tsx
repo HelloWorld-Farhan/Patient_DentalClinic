@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initialAppointments } from '../data/mockData';
 import { Appointment } from '../types';
@@ -60,16 +61,17 @@ export default function Appointments() {
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Toast Alert */}
       <AnimatePresence>
-        {toastMessage && (
+        {toastMessage && typeof document !== 'undefined' && createPortal(
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
+            className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-[18px] text-teal-400">check_circle</span>
             <span>{toastMessage}</span>
-          </motion.div>
+          </motion.div>,
+          document.body
         )}
       </AnimatePresence>
 
@@ -293,195 +295,288 @@ export default function Appointments() {
 
       {/* Book New Appointment Modal */}
       <AnimatePresence>
-        {bookModalOpen && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        {bookModalOpen && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+            {/* Fullscreen Backdrop Blur */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high max-w-lg w-full p-6 space-y-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md"
+              onClick={() => setBookModalOpen(false)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto max-h-[90vh] sm:max-h-[92vh]"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-surface-container-high">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-[24px]">event_note</span>
-                  <h3 className="font-headline font-bold text-base text-on-surface">Book Dental Appointment</h3>
+              {/* Modal Top Header */}
+              <div className="p-4 sm:p-6 border-b border-surface-container-low flex justify-between items-center bg-surface-container-lowest shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-xs shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">calendar_add_on</span>
+                  </div>
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-bold text-on-surface">Book Dental Appointment</h2>
+                    <p className="text-xs text-outline">Schedule preventative care or specialized clinical visit</p>
+                  </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setBookModalOpen(false)}
-                  className="p-1 text-outline hover:text-on-surface rounded-lg cursor-pointer"
+                  className="p-2 text-outline hover:text-on-surface hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer shrink-0"
+                  aria-label="Close dialog"
                 >
                   <span className="material-symbols-outlined text-[20px]">close</span>
                 </button>
               </div>
 
-              <form onSubmit={handleBookAppointment} className="space-y-4 text-xs">
-                <div>
-                  <label className="block font-bold text-on-surface mb-1">Select Procedure / Reason *</label>
-                  <select
-                    value={newProcedure}
-                    onChange={(e) => setNewProcedure(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                  >
-                    <option value="Routine Cleaning & Comprehensive Checkup">Routine Cleaning & Comprehensive Checkup</option>
-                    <option value="Laser Teeth Whitening Consultation">Laser Teeth Whitening Consultation</option>
-                    <option value="Invisalign Aligner Check & Refinement">Invisalign Aligner Check & Refinement</option>
-                    <option value="Dental Crown & Bridge Fitting">Dental Crown & Bridge Fitting</option>
-                    <option value="Emergency Toothache / Trauma Triage">Emergency Toothache / Trauma Triage</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-on-surface mb-1">Preferred Clinician *</label>
-                  <select
-                    value={newDentist}
-                    onChange={(e) => setNewDentist(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                  >
-                    <option value="Dr. Priya Patel">Dr. Priya Patel, DDS (General & Cosmetic)</option>
-                    <option value="Dr. Vikram Chawla">Dr. Vikram Chawla, DMD (Orthodontics Specialist)</option>
-                    <option value="Dr. Rohan Chauhan">Dr. Rohan Chauhan, DMD (Restorative & Implants)</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
+              {/* Form Content */}
+              <form onSubmit={handleBookAppointment} className="flex flex-col flex-1 overflow-hidden">
+                <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
                   <div>
-                    <label className="block font-bold text-on-surface mb-1">Preferred Date *</label>
-                    <input
-                      type="date"
-                      required
-                      value={newDate}
-                      onChange={(e) => setNewDate(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl font-medium border border-surface-container-high focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-on-surface mb-1">Available Slot *</label>
+                    <label className="block font-bold text-on-surface mb-1">Select Procedure / Reason *</label>
                     <select
-                      value={newTime}
-                      onChange={(e) => setNewTime(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl font-medium border border-surface-container-high focus:outline-none focus:border-primary"
+                      value={newProcedure}
+                      onChange={(e) => setNewProcedure(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl font-medium border border-surface-container-high focus:outline-none focus:border-primary text-xs"
                     >
-                      <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
-                      <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
-                      <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
-                      <option value="04:30 PM - 05:30 PM">04:30 PM - 05:30 PM</option>
+                      <option value="Routine Cleaning & Comprehensive Checkup">Routine Cleaning & Comprehensive Checkup</option>
+                      <option value="Laser Teeth Whitening Consultation">Laser Teeth Whitening Consultation</option>
+                      <option value="Invisalign Aligner Check & Refinement">Invisalign Aligner Check & Refinement</option>
+                      <option value="Dental Crown & Bridge Fitting">Dental Crown & Bridge Fitting</option>
+                      <option value="Emergency Toothache / Trauma Triage">Emergency Toothache / Trauma Triage</option>
                     </select>
                   </div>
+
+                  <div>
+                    <label className="block font-bold text-on-surface mb-1">Preferred Clinician *</label>
+                    <select
+                      value={newDentist}
+                      onChange={(e) => setNewDentist(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl font-medium border border-surface-container-high focus:outline-none focus:border-primary text-xs"
+                    >
+                      <option value="Dr. Priya Patel">Dr. Priya Patel, DDS (General & Cosmetic)</option>
+                      <option value="Dr. Vikram Chawla">Dr. Vikram Chawla, DMD (Orthodontics Specialist)</option>
+                      <option value="Dr. Rohan Chauhan">Dr. Rohan Chauhan, DMD (Restorative & Implants)</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-on-surface mb-1">Preferred Date *</label>
+                      <input
+                        type="date"
+                        required
+                        value={newDate}
+                        onChange={(e) => setNewDate(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl font-medium border border-surface-container-high focus:outline-none focus:border-primary text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-on-surface mb-1">Available Slot *</label>
+                      <select
+                        value={newTime}
+                        onChange={(e) => setNewTime(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl font-medium border border-surface-container-high focus:outline-none focus:border-primary text-xs"
+                      >
+                        <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
+                        <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+                        <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
+                        <option value="04:30 PM - 05:30 PM">04:30 PM - 05:30 PM</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-primary/5 rounded-xl border border-primary/20 text-primary text-[11px] leading-relaxed flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[16px] shrink-0">verified</span>
+                    <span>Instant confirmation: You will receive an SMS and calendar invite upon clicking confirm.</span>
+                  </div>
                 </div>
 
-                <div className="p-3 bg-primary/5 rounded-xl border border-primary/20 text-primary text-[11px] leading-relaxed">
-                  ✓ Instant confirmation: You will receive an SMS and calendar invite upon clicking confirm.
-                </div>
-
-                <div className="pt-2 flex justify-end gap-2">
+                {/* Footer Buttons */}
+                <div className="p-4 sm:p-6 bg-surface-container-low/50 border-t border-surface-container-low flex justify-end gap-3 shrink-0">
                   <button
                     type="button"
                     onClick={() => setBookModalOpen(false)}
-                    className="px-4 py-2 bg-surface-container-high text-on-surface font-bold rounded-xl cursor-pointer"
+                    className="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container text-on-surface font-bold rounded-xl cursor-pointer text-xs transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-primary hover:bg-primary-container text-white font-bold rounded-xl shadow-md transition-all cursor-pointer"
+                    className="px-5 py-2.5 bg-primary hover:bg-primary-container text-white font-bold rounded-xl shadow-md transition-all cursor-pointer text-xs"
                   >
                     Confirm Booking
                   </button>
                 </div>
               </form>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 
       {/* Reschedule Modal */}
       <AnimatePresence>
-        {rescheduleModalOpen && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        {rescheduleModalOpen && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high max-w-sm w-full p-6 space-y-4 text-xs"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md"
+              onClick={() => setRescheduleModalOpen(null)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto max-h-[90vh] sm:max-h-[92vh]"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-surface-container-high">
-                <h3 className="font-headline font-bold text-base text-on-surface">Reschedule Visit</h3>
-                <button onClick={() => setRescheduleModalOpen(null)} className="p-1 text-outline">
-                  <span className="material-symbols-outlined text-[18px]">close</span>
+              <div className="p-4 sm:p-6 border-b border-surface-container-low flex justify-between items-center bg-surface-container-lowest shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-xs shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">edit_calendar</span>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-on-surface">Reschedule Visit</h2>
+                    <p className="text-xs text-outline">Select a new date & time slot</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRescheduleModalOpen(null)}
+                  className="p-2 text-outline hover:text-on-surface hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer shrink-0"
+                  aria-label="Close dialog"
+                >
+                  <span className="material-symbols-outlined text-[20px]">close</span>
                 </button>
               </div>
 
-              <p className="text-on-surface-variant">
-                Select a new slot for <strong>{rescheduleModalOpen.procedure}</strong> with {rescheduleModalOpen.dentist}:
-              </p>
+              <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+                <div className="p-3 bg-surface-container-low rounded-xl border border-surface-container-high">
+                  <p className="text-on-surface-variant">
+                    Current appointment: <strong className="text-on-surface">{rescheduleModalOpen.procedure}</strong> with <span className="font-semibold">{rescheduleModalOpen.dentist}</span>
+                  </p>
+                  <p className="text-[11px] text-outline mt-0.5">Currently booked for {rescheduleModalOpen.date} ({rescheduleModalOpen.time})</p>
+                </div>
 
-              <div>
-                <label className="block font-bold text-on-surface mb-1">Select New Date</label>
-                <input
-                  type="date"
-                  defaultValue="2026-11-20"
-                  className="w-full px-3 py-2 bg-surface-container-low rounded-xl border border-surface-container-high font-medium"
-                />
+                <div>
+                  <label className="block font-bold text-on-surface mb-1">Select New Date *</label>
+                  <input
+                    type="date"
+                    defaultValue="2026-11-20"
+                    className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium text-xs focus:outline-none focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-on-surface mb-1">Select Time Slot *</label>
+                  <select
+                    defaultValue="10:00 AM - 11:00 AM"
+                    className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium text-xs focus:outline-none focus:border-primary"
+                  >
+                    <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
+                    <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+                    <option value="01:30 PM - 02:30 PM">01:30 PM - 02:30 PM</option>
+                    <option value="03:30 PM - 04:30 PM">03:30 PM - 04:30 PM</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="p-4 sm:p-6 bg-surface-container-low/50 border-t border-surface-container-low flex justify-end gap-3 shrink-0">
                 <button
+                  type="button"
                   onClick={() => setRescheduleModalOpen(null)}
-                  className="px-4 py-2 bg-surface-container-high text-on-surface font-bold rounded-xl cursor-pointer"
+                  className="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container text-on-surface font-bold rounded-xl cursor-pointer text-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setRescheduleModalOpen(null);
                     showToast("Appointment rescheduled! New confirmation dispatched via SMS.");
                   }}
-                  className="px-4 py-2 bg-primary text-white font-bold rounded-xl cursor-pointer"
+                  className="px-5 py-2.5 bg-primary hover:bg-primary-container text-white font-bold rounded-xl cursor-pointer text-xs shadow-md transition-all"
                 >
                   Update Slot
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 
       {/* Cancel Confirmation Modal */}
       <AnimatePresence>
-        {cancelModalOpen && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        {cancelModalOpen && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high max-w-sm w-full p-6 space-y-4 text-xs"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md"
+              onClick={() => setCancelModalOpen(null)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative bg-surface-container-lowest w-full max-w-sm rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto"
             >
-              <div className="text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-error-container text-error flex items-center justify-center mx-auto">
-                  <span className="material-symbols-outlined text-[26px]">event_busy</span>
+              <div className="p-4 sm:p-6 border-b border-surface-container-low flex justify-between items-center bg-surface-container-lowest shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-error-container text-error flex items-center justify-center shadow-xs shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">event_busy</span>
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-on-surface">Cancel Appointment?</h2>
+                    <p className="text-xs text-outline">This action cannot be undone</p>
+                  </div>
                 </div>
-                <h3 className="font-headline font-bold text-base text-on-surface">Cancel Appointment?</h3>
-                <p className="text-on-surface-variant leading-relaxed">
-                  Are you sure you want to cancel your visit for <strong>{cancelModalOpen.procedure}</strong> on {cancelModalOpen.date}?
-                </p>
+                <button
+                  type="button"
+                  onClick={() => setCancelModalOpen(null)}
+                  className="p-2 text-outline hover:text-on-surface hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer shrink-0"
+                  aria-label="Close dialog"
+                >
+                  <span className="material-symbols-outlined text-[20px]">close</span>
+                </button>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="p-4 sm:p-6 text-xs text-on-surface-variant leading-relaxed">
+                Are you sure you want to cancel your visit for <strong className="text-on-surface">{cancelModalOpen.procedure}</strong> scheduled on <strong className="text-on-surface">{cancelModalOpen.date}</strong>?
+              </div>
+
+              <div className="p-4 sm:p-6 bg-surface-container-low/50 border-t border-surface-container-low flex justify-end gap-3 shrink-0">
                 <button
+                  type="button"
                   onClick={() => setCancelModalOpen(null)}
-                  className="px-4 py-2 bg-surface-container-high text-on-surface font-bold rounded-xl cursor-pointer"
+                  className="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container text-on-surface font-bold rounded-xl cursor-pointer text-xs transition-colors"
                 >
                   Keep Visit
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleCancelAppointment(cancelModalOpen.id)}
-                  className="px-4 py-2 bg-error text-white font-bold rounded-xl cursor-pointer"
+                  className="px-5 py-2.5 bg-error hover:bg-error/90 text-white font-bold rounded-xl cursor-pointer text-xs shadow-md transition-all"
                 >
                   Yes, Cancel
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
     </div>

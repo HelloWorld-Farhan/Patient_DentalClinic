@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initialPatientProfile, initialAppointments } from '../data/mockData';
@@ -23,16 +24,17 @@ export default function Dashboard() {
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Toast Notification */}
       <AnimatePresence>
-        {toastMessage && (
+        {toastMessage && typeof document !== 'undefined' && createPortal(
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
+            className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-[18px] text-teal-400">check_circle</span>
             <span>{toastMessage}</span>
-          </motion.div>
+          </motion.div>,
+          document.body
         )}
       </AnimatePresence>
 
@@ -305,28 +307,46 @@ export default function Dashboard() {
 
       {/* Visit Details Modal */}
       <AnimatePresence>
-        {selectedVisit && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        {selectedVisit && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high max-w-md w-full p-6 space-y-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md"
+              onClick={() => setSelectedVisit(null)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto max-h-[90vh] sm:max-h-[92vh]"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-surface-container-high">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-[22px]">calendar_today</span>
-                  <h3 className="font-headline font-bold text-base text-on-surface">Visit Summary</h3>
+              {/* Top Header */}
+              <div className="p-4 sm:p-6 border-b border-surface-container-low flex justify-between items-center bg-surface-container-lowest shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-xs shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">calendar_today</span>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-on-surface">Visit Summary</h2>
+                    <p className="text-xs text-outline">Clinical overview of scheduled consultation</p>
+                  </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setSelectedVisit(null)}
-                  className="p-1 text-outline hover:text-on-surface rounded-lg cursor-pointer"
+                  className="p-2 text-outline hover:text-on-surface hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer shrink-0"
+                  aria-label="Close dialog"
                 >
                   <span className="material-symbols-outlined text-[20px]">close</span>
                 </button>
               </div>
 
-              <div className="space-y-3 text-xs">
+              {/* Body */}
+              <div className="p-4 sm:p-6 space-y-3 overflow-y-auto flex-1 text-xs">
                 <div>
                   <span className="text-outline block uppercase tracking-wider text-[10px] font-bold">Procedure</span>
                   <span className="font-bold text-on-surface text-sm block">{selectedVisit.procedure}</span>
@@ -349,145 +369,188 @@ export default function Dashboard() {
                   </div>
                 </div>
                 {selectedVisit.notes && (
-                  <div className="p-3 bg-surface-container-low rounded-xl text-on-surface-variant">
+                  <div className="p-3 bg-surface-container-low rounded-xl text-on-surface-variant border border-surface-container-high">
                     <strong className="block text-on-surface text-[11px] mb-0.5">Clinical Instructions:</strong>
                     {selectedVisit.notes}
                   </div>
                 )}
               </div>
 
-              <div className="pt-3 border-t border-surface-container-high flex justify-end gap-2">
+              {/* Footer */}
+              <div className="p-4 sm:p-6 bg-surface-container-low/50 border-t border-surface-container-low flex justify-end gap-3 shrink-0">
                 <button
+                  type="button"
                   onClick={() => setSelectedVisit(null)}
-                  className="px-4 py-2 bg-surface-container-high text-on-surface text-xs font-bold rounded-xl hover:bg-surface-container-highest cursor-pointer"
+                  className="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container text-on-surface text-xs font-bold rounded-xl cursor-pointer transition-colors"
                 >
                   Close
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setSelectedVisit(null);
                     showToast("Calendar invite synced to your device!");
                   }}
-                  className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-container cursor-pointer"
+                  className="px-5 py-2.5 bg-primary hover:bg-primary-container text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
                 >
                   Sync to Calendar
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 
       {/* Pay Bill Quick Modal */}
       <AnimatePresence>
-        {payModalOpen && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        {payModalOpen && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high max-w-sm w-full p-6 space-y-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md"
+              onClick={() => setPayModalOpen(false)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative bg-surface-container-lowest w-full max-w-sm rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-surface-container-high">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-emerald-600 text-[22px]">credit_card</span>
-                  <h3 className="font-headline font-bold text-base text-on-surface">Pay Patient Copay</h3>
+              <div className="p-4 sm:p-6 border-b border-surface-container-low flex justify-between items-center bg-surface-container-lowest shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shadow-xs shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">credit_card</span>
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-on-surface">Pay Patient Copay</h2>
+                    <p className="text-xs text-outline">Direct clinic copay settlement</p>
+                  </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setPayModalOpen(false)}
-                  className="p-1 text-outline hover:text-on-surface rounded-lg cursor-pointer"
+                  className="p-2 text-outline hover:text-on-surface hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer shrink-0"
+                  aria-label="Close dialog"
                 >
                   <span className="material-symbols-outlined text-[20px]">close</span>
                 </button>
               </div>
 
-              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-center space-y-1">
-                <span className="text-xs text-emerald-800 font-medium">Outstanding Statement Balance</span>
-                <div className="text-3xl font-extrabold text-emerald-950">$45.50</div>
-                <span className="text-[11px] text-emerald-700 block">Delta Dental Paid: $120.00</span>
-              </div>
+              <div className="p-4 sm:p-6 space-y-4 text-xs">
+                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-center space-y-1">
+                  <span className="text-xs text-emerald-800 font-medium">Outstanding Statement Balance</span>
+                  <div className="text-3xl font-extrabold text-emerald-950">$45.50</div>
+                  <span className="text-[11px] text-emerald-700 block">Delta Dental Paid: $120.00</span>
+                </div>
 
-              <div className="space-y-2 text-xs">
-                <label className="block font-bold text-on-surface">Saved Payment Method</label>
-                <div className="p-3 rounded-xl border border-primary/40 bg-primary/5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[20px]">credit_card</span>
-                    <span className="font-bold text-on-surface">Visa ending in 4092</span>
+                <div className="space-y-2 text-xs">
+                  <label className="block font-bold text-on-surface">Saved Payment Method</label>
+                  <div className="p-3 rounded-xl border border-primary/40 bg-primary/5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-[20px]">credit_card</span>
+                      <span className="font-bold text-on-surface">Visa ending in 4092</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Primary</span>
                   </div>
-                  <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Primary</span>
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="p-4 sm:p-6 bg-surface-container-low/50 border-t border-surface-container-low flex justify-end gap-3 shrink-0">
                 <button
+                  type="button"
                   onClick={() => setPayModalOpen(false)}
-                  className="px-4 py-2 bg-surface-container-high text-on-surface text-xs font-bold rounded-xl cursor-pointer"
+                  className="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container text-on-surface text-xs font-bold rounded-xl cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setPayModalOpen(false);
                     showToast("Payment of $45.50 settled successfully! Receipt sent to email.");
                   }}
-                  className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
+                  className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
                 >
                   Authorize $45.50
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
 
       {/* Dental Care Tips Modal */}
       <AnimatePresence>
-        {tipsModalOpen && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        {tipsModalOpen && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high max-w-lg w-full p-6 space-y-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md"
+              onClick={() => setTipsModalOpen(false)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative bg-surface-container-lowest w-full max-w-lg rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto max-h-[90vh] sm:max-h-[92vh]"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-surface-container-high">
-                <div className="flex items-center gap-2 text-purple-700">
-                  <span className="material-symbols-outlined text-[24px]">dentistry</span>
-                  <h3 className="font-headline font-bold text-base text-on-surface">Personalized Oral Care Guide</h3>
+              <div className="p-4 sm:p-6 border-b border-surface-container-low flex justify-between items-center bg-surface-container-lowest shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center shadow-xs shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">dentistry</span>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-on-surface">Personalized Oral Care Guide</h2>
+                    <p className="text-xs text-outline">Customized hygiene advice curated by your care team</p>
+                  </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setTipsModalOpen(false)}
-                  className="p-1 text-outline hover:text-on-surface rounded-lg cursor-pointer"
+                  className="p-2 text-outline hover:text-on-surface hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer shrink-0"
+                  aria-label="Close dialog"
                 >
                   <span className="material-symbols-outlined text-[20px]">close</span>
                 </button>
               </div>
 
-              <div className="space-y-3 text-xs text-on-surface-variant max-h-80 overflow-y-auto pr-1">
-                <div className="p-3 bg-surface-container-low rounded-xl">
+              <div className="p-4 sm:p-6 space-y-3 overflow-y-auto flex-1 text-xs text-on-surface-variant">
+                <div className="p-3.5 bg-surface-container-low rounded-xl border border-surface-container-high">
                   <strong className="text-on-surface block mb-1">1. Aligner Care & Hygiene:</strong>
                   Clean aligner trays with lukewarm water and antibacterial crystal soak. Never use hot water to prevent plastic distortion.
                 </div>
-                <div className="p-3 bg-surface-container-low rounded-xl">
+                <div className="p-3.5 bg-surface-container-low rounded-xl border border-surface-container-high">
                   <strong className="text-on-surface block mb-1">2. Interdental Cleaning:</strong>
                   Floss once daily prior to bedtime. Focus on mandibular anterior lingual margins where calculus naturally accumulates.
                 </div>
-                <div className="p-3 bg-surface-container-low rounded-xl">
+                <div className="p-3.5 bg-surface-container-low rounded-xl border border-surface-container-high">
                   <strong className="text-on-surface block mb-1">3. Enamel Protection:</strong>
                   Wait 30 minutes after consuming acidic beverages (citrus, coffee) before brushing to avoid enamel micro-abrasion.
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end">
+              <div className="p-4 sm:p-6 bg-surface-container-low/50 border-t border-surface-container-low flex justify-end shrink-0">
                 <button
+                  type="button"
                   onClick={() => setTipsModalOpen(false)}
-                  className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl cursor-pointer"
+                  className="px-5 py-2.5 bg-primary hover:bg-primary-container text-white text-xs font-bold rounded-xl cursor-pointer shadow-md transition-all"
                 >
                   Got it, thank you
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
     </div>
