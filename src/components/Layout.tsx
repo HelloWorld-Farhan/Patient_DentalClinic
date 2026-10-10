@@ -48,9 +48,8 @@ export default function Layout() {
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: 'dashboard', end: true },
     { name: 'Appointments', path: '/dashboard/appointments', icon: 'calendar_month' },
-    { name: 'Records & X-Rays', path: '/dashboard/records', icon: 'medical_services' },
-    { name: 'Billing & Insurance', path: '/dashboard/billing', icon: 'receipt_long' },
-    { name: 'Settings & Profile', path: '/dashboard/settings', icon: 'settings' }
+    { name: 'Records', path: '/dashboard/records', icon: 'medical_services' },
+    { name: 'Billing', path: '/dashboard/billing', icon: 'receipt_long' }
   ];
 
   return (
@@ -114,54 +113,6 @@ export default function Layout() {
               );
             })}
           </nav>
-        </div>
-
-        {/* Sidebar Bottom Widgets */}
-        <div className="px-4 space-y-3">
-          {/* Quick Doctor Portal Switcher */}
-          <a
-            href="https://doctor-dental-clinic.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block p-3 rounded-xl bg-surface-container-lowest border border-surface-container-high hover:border-primary/40 transition-all shadow-xs group"
-          >
-            <div className="flex items-center justify-between text-xs font-bold text-on-surface">
-              <span className="flex items-center gap-1.5 text-primary">
-                <span className="material-symbols-outlined text-[16px]">stethoscope</span>
-                Doctor Portal
-              </span>
-              <span className="material-symbols-outlined text-[14px] text-outline group-hover:translate-x-0.5 transition-transform">
-                open_in_new
-              </span>
-            </div>
-            <p className="text-[10px] text-on-surface-variant mt-1 leading-tight">
-              Switch to clinical doctor & staff interface
-            </p>
-          </a>
-
-          {/* Patient Card */}
-          <div className="p-3 rounded-xl bg-surface-container-lowest border border-surface-container-high flex items-center justify-between">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-xs shrink-0">
-                AV
-              </div>
-              <div className="min-w-0">
-                <span className="text-xs font-bold text-on-surface block truncate">
-                  {initialPatientProfile.name}
-                </span>
-                <span className="text-[10px] text-outline font-medium block">
-                  {initialPatientProfile.id}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate('/login')}
-              title="Sign Out"
-              className="p-1.5 text-outline hover:text-error hover:bg-error-container/20 rounded-lg transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">logout</span>
-            </button>
-          </div>
         </div>
       </aside>
 
@@ -275,25 +226,35 @@ export default function Layout() {
               </AnimatePresence>
             </div>
 
-            {/* Profile Dropdown */}
+            {/* Profile Trigger & Dropdown */}
             <div className="relative" ref={profileDropdownRef}>
-              <button
-                onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-surface-container transition-colors cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs shadow-xs">
-                  AV
-                </div>
-                <div className="hidden sm:block text-left">
-                  <span className="text-xs font-bold text-on-surface block leading-tight">
-                    {initialPatientProfile.name}
-                  </span>
-                  <span className="text-[10px] text-outline font-medium block">
-                    Patient #{initialPatientProfile.id}
-                  </span>
-                </div>
-                <span className="material-symbols-outlined text-outline text-[18px]">expand_more</span>
-              </button>
+              <div className="flex items-center gap-1 bg-surface-container-low/60 hover:bg-surface-container rounded-xl p-1 transition-colors">
+                <button
+                  onClick={() => navigate('/dashboard/settings')}
+                  className="flex items-center gap-2 px-1.5 py-0.5 rounded-lg text-left cursor-pointer group"
+                  title="Open Settings & Profile"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs shadow-xs group-hover:scale-105 transition-transform">
+                    <span className="material-symbols-outlined text-[18px]">person</span>
+                  </div>
+                  <div className="hidden sm:block">
+                    <span className="text-xs font-bold text-on-surface block leading-tight group-hover:text-primary transition-colors">
+                      {initialPatientProfile.name}
+                    </span>
+                    <span className="text-[10px] text-outline font-medium block">
+                      Patient #{initialPatientProfile.id}
+                    </span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="p-1 text-outline hover:text-on-surface rounded-lg transition-colors cursor-pointer"
+                  title="Profile menu options"
+                  aria-label="Profile menu options"
+                >
+                  <span className="material-symbols-outlined text-[18px]">expand_more</span>
+                </button>
+              </div>
 
               <AnimatePresence>
                 {profileOpen && (
@@ -317,8 +278,8 @@ export default function Layout() {
                       onClick={() => setProfileOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors"
                     >
-                      <span className="material-symbols-outlined text-[18px] text-primary">person</span>
-                      <span>My Profile & Insurance</span>
+                      <span className="material-symbols-outlined text-[18px] text-primary">manage_accounts</span>
+                      <span>Profile & Settings</span>
                     </Link>
 
                     <Link
@@ -327,7 +288,7 @@ export default function Layout() {
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors"
                     >
                       <span className="material-symbols-outlined text-[18px] text-primary">receipt_long</span>
-                      <span>Billing & Invoices</span>
+                      <span>Billing & Payments</span>
                     </Link>
 
                     <a

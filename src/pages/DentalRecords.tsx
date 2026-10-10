@@ -5,7 +5,7 @@ import { initialOdontogramTeeth, initialClinicalNotes, initialRadiographs } from
 import { OdontogramTooth, DentalRadiograph } from '../types';
 
 export default function DentalRecords() {
-  const [teeth, setTeeth] = useState<OdontogramTooth[]>(initialOdontogramTeeth);
+  const [teeth] = useState<OdontogramTooth[]>(initialOdontogramTeeth);
   const [selectedTooth, setSelectedTooth] = useState<OdontogramTooth>(initialOdontogramTeeth[17]); // default tooth 18
   const [activeLightboxImage, setActiveLightboxImage] = useState<DentalRadiograph | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -13,26 +13,24 @@ export default function DentalRecords() {
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   const upperArch = teeth.filter(t => t.arch === 'upper');
   const lowerArch = teeth.filter(t => t.arch === 'lower');
 
   const getToothStatusClass = (status: OdontogramTooth['status'], isSelected: boolean) => {
-    const base = 'w-9 h-12 sm:w-11 sm:h-14 rounded-xl flex flex-col items-center justify-between p-1.5 transition-all transform hover:-translate-y-1 shadow-xs cursor-pointer border';
+    const base = 'w-9 h-12 md:w-11 md:h-14 rounded-lg flex flex-col items-center justify-between p-1 transition-all transform hover:-translate-y-1 shadow-sm font-label-sm cursor-pointer';
     const ring = isSelected ? 'ring-2 ring-primary ring-offset-2 scale-105 z-10' : '';
 
     switch (status) {
       case 'crown':
-        return `${base} ${ring} bg-secondary text-white border-secondary/50`;
+        return `${base} ${ring} bg-secondary text-white`;
       case 'cavity':
-        return `${base} ${ring} bg-amber-500 text-white border-amber-600/50`;
-      case 'watch':
-        return `${base} ${ring} bg-purple-500 text-white border-purple-600/50`;
+        return `${base} ${ring} bg-error text-white`;
       case 'healthy':
       default:
-        return `${base} ${ring} bg-surface-container-high hover:bg-primary-tint/60 text-on-surface border-surface-container-highest`;
+        return `${base} ${ring} bg-surface-container-highest hover:bg-primary-fixed-dim text-on-surface`;
     }
   };
 
@@ -42,8 +40,6 @@ export default function DentalRecords() {
         return 'verified';
       case 'cavity':
         return 'warning';
-      case 'watch':
-        return 'visibility';
       case 'healthy':
       default:
         return 'check';
@@ -59,69 +55,71 @@ export default function DentalRecords() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2"
+            className="fixed top-6 right-6 z-[10000] bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl border border-slate-700 text-xs font-semibold flex items-center gap-2.5"
           >
-            <span className="material-symbols-outlined text-[18px] text-teal-400">check_circle</span>
+            <span className="material-symbols-outlined text-teal-400 text-[20px]">task_alt</span>
             <span>{toastMessage}</span>
           </motion.div>,
           document.body
         )}
       </AnimatePresence>
 
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Top Banner / Summary Bar */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface-container-low p-6 rounded-xl shadow-sm">
         <div>
-          <h1 className="font-headline font-bold text-2xl text-on-surface">Dental Records & Radiographs</h1>
-          <p className="text-xs text-on-surface-variant mt-0.5">
-            Interactive adult odontogram charting, clinical consultation notes, and 3D imaging archive.
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs uppercase tracking-wider text-secondary font-bold">Patient Clinical Record</span>
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-semibold">Active File</span>
+          </div>
+          <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-on-surface">Medical & Dental Archive</h1>
+          <p className="text-xs sm:text-sm text-on-surface-variant mt-0.5">
+            Comprehensive overview of dental charts, diagnostic imaging, and clinical consultation notes.
           </p>
         </div>
-        <button
-          onClick={() => showToast("Exporting comprehensive clinical health record (DICOM + PDF)...")}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface-container-lowest border border-surface-container-high hover:border-primary/40 text-on-surface text-xs font-bold shadow-xs transition-all cursor-pointer self-start sm:self-auto"
-        >
-          <span className="material-symbols-outlined text-[18px] text-primary">download</span>
-          <span>Export Full Records</span>
-        </button>
+        <div className="flex items-center gap-3 self-stretch sm:self-auto">
+          <button
+            onClick={() => showToast('Exporting full clinical summary (PDF & DICOM)...')}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-primary text-white px-4 py-2.5 rounded-lg hover:bg-primary-container transition-all text-xs font-bold shadow-sm cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">download</span>
+            <span>Export Full Record</span>
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-surface-container-high text-on-surface px-4 py-2.5 rounded-lg hover:bg-surface-variant transition-all text-xs font-bold cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">print</span>
+            <span>Print View</span>
+          </button>
+        </div>
       </div>
 
-      {/* Split Section: Odontogram Chart & Notes (7 cols) + Imaging Archive (5 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column (7 cols): Odontogram & Clinical Notes */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* 1. Odontogram Card */}
-          <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-xs border border-surface-container-high space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Interactive Dental Chart & Tooth Status (7 Cols) */}
+        <div className="lg:col-span-7 flex flex-col gap-6">
+          {/* Dental Chart Card */}
+          <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-xl shadow-[0_4px_20px_rgba(0,119,130,0.06)] border border-surface-container-high/60 flex flex-col gap-6">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
               <div>
-                <h2 className="font-headline font-bold text-base text-on-surface flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-[22px]">dentistry</span>
-                  <span>Adult Dental Chart (Odontogram)</span>
-                </h2>
-                <p className="text-[11px] text-on-surface-variant">Click any tooth below to view restoration status & notes.</p>
+                <h2 className="font-headline font-bold text-lg sm:text-xl text-on-surface">Interactive Dental Chart</h2>
+                <p className="text-xs text-on-surface-variant mt-0.5">Click any tooth to inspect historical work, status, and active notes.</p>
               </div>
-
-              {/* Legend */}
-              <div className="flex items-center gap-3 text-[11px] font-semibold">
-                <span className="flex items-center gap-1 text-on-surface-variant">
-                  <span className="w-2.5 h-2.5 rounded-full bg-surface-container-highest border border-outline/30"></span> Healthy
-                </span>
-                <span className="flex items-center gap-1 text-secondary">
-                  <span className="w-2.5 h-2.5 rounded-full bg-secondary"></span> Crown
-                </span>
-                <span className="flex items-center gap-1 text-amber-600">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Watch
-                </span>
+              <div className="flex items-center gap-3 text-xs font-medium">
+                <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-primary inline-block"></span><span>Healthy</span></div>
+                <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-secondary inline-block"></span><span>Crown</span></div>
+                <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-error inline-block"></span><span>Needs Work</span></div>
               </div>
             </div>
 
-            {/* Tooth Grid Viewport */}
-            <div className="bg-surface-container-low p-4 sm:p-6 rounded-2xl border border-surface-container-high flex flex-col items-center gap-6">
-              {/* Upper Arch (1-16) */}
+            {/* Tooth Visualization Grid Container */}
+            <div className="bg-surface-container-low p-6 rounded-xl flex flex-col items-center justify-center gap-6 border border-surface-container-high/60">
+              {/* Upper Arch */}
               <div className="w-full">
-                <span className="text-[11px] font-bold text-on-surface-variant block text-center mb-2.5 uppercase tracking-wider">
-                  Upper Arch (Maxillary Teeth 1 – 16)
+                <span className="text-xs text-on-surface-variant block text-center mb-3 uppercase tracking-wider font-bold">
+                  Upper Arch (Maxillary)
                 </span>
-                <div className="flex justify-center gap-1 sm:gap-2 flex-wrap">
+                <div className="flex justify-center gap-1.5 md:gap-2 flex-wrap">
                   {upperArch.map((tooth) => (
                     <button
                       key={tooth.number}
@@ -130,7 +128,7 @@ export default function DentalRecords() {
                       className={getToothStatusClass(tooth.status, selectedTooth.number === tooth.number)}
                       title={`Tooth #${tooth.number}: ${tooth.name}`}
                     >
-                      <span className="text-[10px] font-bold opacity-80">{tooth.number}</span>
+                      <span className="text-[10px] opacity-75 font-mono">{tooth.number}</span>
                       <span className="material-symbols-outlined text-[16px]">
                         {getToothIcon(tooth.status)}
                       </span>
@@ -139,16 +137,12 @@ export default function DentalRecords() {
                 </div>
               </div>
 
-              {/* Arch Divider */}
-              <div className="w-full flex items-center justify-center gap-3 my-1">
-                <div className="flex-1 h-[1px] bg-surface-container-high"></div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-outline">Occlusal Plane</span>
-                <div className="flex-1 h-[1px] bg-surface-container-high"></div>
-              </div>
+              {/* Divider */}
+              <div className="w-full h-[1px] bg-outline-variant/30 my-1"></div>
 
-              {/* Lower Arch (32 down to 17) */}
+              {/* Lower Arch */}
               <div className="w-full">
-                <div className="flex justify-center gap-1 sm:gap-2 flex-wrap">
+                <div className="flex justify-center gap-1.5 md:gap-2 flex-wrap mb-3">
                   {lowerArch.map((tooth) => (
                     <button
                       key={tooth.number}
@@ -157,94 +151,82 @@ export default function DentalRecords() {
                       className={getToothStatusClass(tooth.status, selectedTooth.number === tooth.number)}
                       title={`Tooth #${tooth.number}: ${tooth.name}`}
                     >
-                      <span className="text-[10px] font-bold opacity-80">{tooth.number}</span>
+                      <span className="text-[10px] opacity-75 font-mono">{tooth.number}</span>
                       <span className="material-symbols-outlined text-[16px]">
                         {getToothIcon(tooth.status)}
                       </span>
                     </button>
                   ))}
                 </div>
-                <span className="text-[11px] font-bold text-on-surface-variant block text-center mt-2.5 uppercase tracking-wider">
-                  Lower Arch (Mandibular Teeth 32 – 17)
+                <span className="text-xs text-on-surface-variant block text-center uppercase tracking-wider font-bold">
+                  Lower Arch (Mandibular)
                 </span>
               </div>
             </div>
 
-            {/* Selected Tooth Detail Banner */}
-            <motion.div 
+            {/* Selected Tooth Details Panel */}
+            <motion.div
               key={selectedTooth.number}
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-primary/5 border border-primary/20 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+              className="bg-primary/10 border border-primary/20 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs sm:text-sm"
             >
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
+                <div className="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs font-mono">
                   {selectedTooth.number}
                 </div>
                 <div>
-                  <h4 className="font-headline font-bold text-sm text-on-surface">{selectedTooth.name}</h4>
-                  <p className="text-on-surface-variant mt-0.5">
+                  <h4 className="font-headline font-bold text-on-surface text-sm sm:text-base">{selectedTooth.name}</h4>
+                  <p className="text-xs text-on-surface-variant mt-0.5">
                     <strong>Status:</strong>{' '}
                     <span className="capitalize font-semibold text-primary">{selectedTooth.status}</span>
                     {selectedTooth.notes && ` — ${selectedTooth.notes}`}
                   </p>
                 </div>
               </div>
-              <div className="text-right sm:self-center shrink-0">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-outline block">Last Verified</span>
-                <span className="font-bold text-primary">{selectedTooth.lastInspected}</span>
-              </div>
+              <span className="text-xs font-bold text-primary shrink-0">Last Inspected: {selectedTooth.lastInspected}</span>
             </motion.div>
           </div>
 
-          {/* 2. Doctor Consultation Notes Archive */}
-          <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-xs border border-surface-container-high space-y-4">
-            <div className="flex items-center justify-between">
+          {/* Doctor Consultation Notes & Prescribed Treatments List */}
+          <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-xl shadow-[0_4px_20px_rgba(0,119,130,0.06)] border border-surface-container-high/60 flex flex-col gap-6">
+            <div className="flex justify-between items-center">
               <div>
-                <h2 className="font-headline font-bold text-base text-on-surface flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-[22px]">clinical_notes</span>
-                  <span>Consultation Notes & Treatments</span>
-                </h2>
-                <p className="text-[11px] text-on-surface-variant">Chronological archive of clinical diagnoses and therapy plans.</p>
+                <h2 className="font-headline font-bold text-lg sm:text-xl text-on-surface">Consultation Notes & Treatments</h2>
+                <p className="text-xs text-on-surface-variant mt-0.5">Chronological archive of clinical diagnoses and therapy plans.</p>
               </div>
-              <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                {initialClinicalNotes.length} Reports
-              </span>
+              <span className="material-symbols-outlined text-primary text-[28px]">clinical_notes</span>
             </div>
 
-            <div className="space-y-3">
+            {/* Notes List */}
+            <div className="flex flex-col gap-4 text-xs sm:text-sm">
               {initialClinicalNotes.map((note) => (
-                <div key={note.id} className="p-4 bg-surface-container-low rounded-xl border border-surface-container-high space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
+                <div key={note.id} className="bg-surface-container-low p-4 rounded-xl flex flex-col gap-2 border border-surface-container-high/60">
+                  <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        note.category === 'Routine Checkup' 
-                          ? 'bg-teal-50 text-teal-700 border border-teal-200'
-                          : note.category === 'Restorative'
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                            : 'bg-purple-50 text-purple-700 border border-purple-200'
+                      <span className={`px-2.5 py-1 rounded-md font-bold text-[10px] ${
+                        note.category === 'Routine Checkup'
+                          ? 'bg-tertiary-container text-white'
+                          : 'bg-secondary text-white'
                       }`}>
                         {note.category}
                       </span>
-                      <strong className="text-on-surface">{note.dentist}</strong>
-                      <span className="text-outline text-[11px] hidden sm:inline">({note.dentistTitle})</span>
+                      <span className="font-bold text-on-surface">{note.dentist}</span>
                     </div>
-                    <span className="text-outline font-medium text-[11px]">{note.date}</span>
+                    <span className="text-xs text-on-surface-variant">{note.date}</span>
                   </div>
-
-                  <p className="text-on-surface-variant leading-relaxed">
+                  <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
                     {note.diagnosis}
                   </p>
-
-                  <div className="pt-2 border-t border-surface-container-high/60 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-[11px]">
-                    <div>
-                      <strong className="text-on-surface">Treatment:</strong>{' '}
-                      <span className="text-on-surface-variant">{note.treatment}</span>
-                    </div>
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-outline-variant/20 text-xs">
+                    <span className="font-bold text-on-surface">Prescribed Treatment:</span>
+                    <span className="bg-surface-container-highest px-2 py-0.5 rounded text-on-surface font-medium">
+                      {note.treatment}
+                    </span>
                     {note.medication && (
-                      <div className="text-primary font-semibold">
+                      <span className="text-primary font-semibold ml-auto">
                         Rx: {note.medication}
-                      </div>
+                      </span>
                     )}
                   </div>
                 </div>
@@ -253,62 +235,57 @@ export default function DentalRecords() {
           </div>
         </div>
 
-        {/* Right Column (5 cols): High-Resolution Imaging Archive */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-surface-container-lowest p-6 rounded-2xl shadow-xs border border-surface-container-high space-y-4">
-            <div className="flex items-center justify-between">
+        {/* Right Column: X-ray & Imaging Archive (5 Cols) */}
+        <div className="lg:col-span-5 flex flex-col gap-6">
+          <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-xl shadow-[0_4px_20px_rgba(0,119,130,0.06)] border border-surface-container-high/60 flex flex-col gap-5">
+            <div className="flex justify-between items-center">
               <div>
-                <h2 className="font-headline font-bold text-base text-on-surface flex items-center gap-2">
-                  <span className="material-symbols-outlined text-secondary text-[22px]">radiology</span>
-                  <span>Imaging Archive</span>
-                </h2>
-                <p className="text-[11px] text-on-surface-variant">High-resolution radiographs & 3D DICOM scans.</p>
+                <h2 className="font-headline font-bold text-lg sm:text-xl text-on-surface">Imaging Archive</h2>
+                <p className="text-xs text-on-surface-variant mt-0.5">Diagnostic scans & panoramic radiographs.</p>
               </div>
-              <span className="text-[10px] font-bold bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 rounded-full">
-                Encrypted
-              </span>
+              <span className="material-symbols-outlined text-secondary text-[26px]">radiology</span>
             </div>
 
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               {initialRadiographs.map((scan) => (
-                <div 
+                <div
                   key={scan.id}
-                  className="bg-surface-container-low rounded-2xl overflow-hidden border border-surface-container-high shadow-xs group"
+                  className="bg-surface-container-low rounded-xl overflow-hidden border border-surface-container-high/60 group shadow-xs"
                 >
-                  <div className="relative h-44 w-full overflow-hidden bg-slate-900 cursor-pointer" onClick={() => setActiveLightboxImage(scan)}>
-                    <img 
-                      src={scan.imageUrl} 
-                      alt={scan.title} 
+                  <div
+                    className="relative h-44 w-full overflow-hidden bg-slate-900 cursor-pointer"
+                    onClick={() => setActiveLightboxImage(scan)}
+                  >
+                    <img
+                      src={scan.imageUrl}
+                      alt={scan.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                    <span className="absolute top-3 right-3 bg-black/75 text-white text-[10px] font-mono px-2 py-0.5 rounded-full backdrop-blur-md">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <span className="absolute top-3 right-3 bg-black/75 text-white text-[10px] font-mono px-2.5 py-0.5 rounded-full backdrop-blur-md">
                       {scan.type}
                     </span>
-                    <button 
-                      onClick={() => setActiveLightboxImage(scan)}
-                      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 text-white"
-                    >
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 text-white">
                       <span className="material-symbols-outlined text-3xl">zoom_in</span>
-                    </button>
-                    <div className="absolute bottom-2.5 left-3 right-3 text-white">
+                    </div>
+                    <div className="absolute bottom-3 left-3 right-3 text-white">
                       <span className="text-[10px] text-teal-300 font-semibold block">{scan.date} • {scan.dentist}</span>
-                      <h4 className="font-bold text-xs truncate leading-tight">{scan.title}</h4>
+                      <h4 className="font-bold text-sm truncate leading-tight">{scan.title}</h4>
                     </div>
                   </div>
 
-                  <div className="p-3.5 space-y-2 text-xs">
-                    <p className="text-[11px] text-on-surface-variant leading-relaxed line-clamp-2">
+                  <div className="p-4 space-y-2 text-xs">
+                    <p className="text-on-surface-variant leading-relaxed line-clamp-2">
                       {scan.description}
                     </p>
-                    <div className="flex items-center justify-between pt-2 border-t border-surface-container-high/60 text-[11px]">
-                      <span className="text-outline font-mono text-[10px]">{scan.resolution}</span>
+                    <div className="flex items-center justify-between pt-2 border-t border-surface-container-high text-xs">
+                      <span className="text-outline font-mono text-[11px]">{scan.resolution}</span>
                       <button
-                        onClick={() => showToast(`Downloaded DICOM package for ${scan.title}!`)}
+                        onClick={() => showToast(`Downloaded DICOM scan package for ${scan.title}!`)}
                         className="inline-flex items-center gap-1 font-bold text-secondary hover:underline cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[15px]">download</span>
-                        <span>Download Scan</span>
+                        <span className="material-symbols-outlined text-[16px]">download</span>
+                        <span>Download DICOM</span>
                       </button>
                     </div>
                   </div>
@@ -319,7 +296,7 @@ export default function DentalRecords() {
         </div>
       </div>
 
-      {/* Lightbox Modal for Radiographs */}
+      {/* Lightbox Modal for Radiographs (Portal with z-[9999]) */}
       <AnimatePresence>
         {activeLightboxImage && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">

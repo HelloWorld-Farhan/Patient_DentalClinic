@@ -6,7 +6,7 @@ import { PatientProfile } from '../types';
 
 export default function Settings() {
   const [profile, setProfile] = useState<PatientProfile>(initialPatientProfile);
-  const [activeTab, setActiveTab] = useState<'profile' | 'insurance' | 'notifications' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'security'>('profile');
   const [smsReminders, setSmsReminders] = useState(true);
   const [emailSummaries, setEmailSummaries] = useState(true);
   const [twoFactorAuth, setTwoFactorAuth] = useState(true);
@@ -21,6 +21,12 @@ export default function Settings() {
     e.preventDefault();
     showToast("Patient profile details updated successfully!");
   };
+
+  const tabs = [
+    { id: 'profile', label: 'Personal Information', icon: 'person' },
+    { id: 'notifications', label: 'Notifications & Alerts', icon: 'notifications' },
+    { id: 'security', label: 'Security & Passkeys', icon: 'lock' }
+  ] as const;
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -40,261 +46,273 @@ export default function Settings() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <div>
-        <h1 className="font-headline font-bold text-2xl text-on-surface">Settings & Patient Profile</h1>
-        <p className="text-xs text-on-surface-variant mt-0.5">
-          Manage your personal identity, dental insurance policy, notifications, and security credentials.
-        </p>
+      {/* Top Banner Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-low p-6 rounded-xl shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0 shadow-xs">
+            <span className="material-symbols-outlined text-[26px]">manage_accounts</span>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-xs uppercase tracking-wider text-primary font-bold">Account Preferences</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-semibold">Active Session</span>
+            </div>
+            <h1 className="font-headline-lg text-2xl sm:text-3xl font-bold text-on-surface">Patient Profile & Settings</h1>
+            <p className="text-xs sm:text-sm text-on-surface-variant mt-0.5">
+              Manage your personal identity, contact channels, notification triggers, and biometric credentials.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs Navigation */}
       <div className="flex border-b border-surface-container-high gap-2 overflow-x-auto no-scrollbar">
-        {[
-          { id: 'profile', label: 'Personal Information', icon: 'person' },
-          { id: 'insurance', label: 'Dental Insurance', icon: 'health_and_safety' },
-          { id: 'notifications', label: 'Notifications & Alerts', icon: 'notifications' },
-          { id: 'security', label: 'Security & Passkeys', icon: 'lock' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 whitespace-nowrap transition-colors cursor-pointer ${
-              activeTab === tab.id
-                ? 'border-primary text-primary'
-                : 'border-transparent text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
-            <span>{tab.label}</span>
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                isActive
+                  ? 'text-primary'
+                  : 'text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
+              <span>{tab.label}</span>
+              {isActive && (
+                <motion.div
+                  layoutId="activeSettingsTab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Content */}
-      <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-xs border border-surface-container-high">
-        {/* Tab 1: Profile */}
-        {activeTab === 'profile' && (
-          <form onSubmit={handleSaveProfile} className="space-y-5 text-xs">
-            <div className="flex items-center gap-4 pb-4 border-b border-surface-container-high">
-              <div className="w-16 h-16 rounded-2xl bg-primary text-white flex items-center justify-center font-bold text-xl shadow-xs">
-                AV
+      {/* Tab Panels */}
+      <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-xl shadow-[0_4px_20px_rgba(0,119,130,0.06)] border border-surface-container-high/60">
+        <AnimatePresence mode="wait">
+          {/* Tab 1: Personal Information */}
+          {activeTab === 'profile' && (
+            <motion.form
+              key="profile"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              onSubmit={handleSaveProfile}
+              className="space-y-6 text-xs sm:text-sm"
+            >
+              {/* Avatar & Patient Header */}
+              <div className="flex items-center gap-4 pb-6 border-b border-surface-container-high">
+                <div className="w-16 h-16 rounded-2xl bg-primary text-white flex items-center justify-center font-bold text-xl shadow-xs">
+                  AV
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-headline font-bold text-lg text-on-surface">{profile.name}</h3>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
+                      Verified Patient
+                    </span>
+                  </div>
+                  <span className="text-outline text-xs block font-mono mt-0.5">Patient Record #{profile.id}</span>
+                </div>
               </div>
-              <div>
-                <h3 className="font-headline font-bold text-base text-on-surface">{profile.name}</h3>
-                <span className="text-outline font-mono">Patient #{profile.id}</span>
-                <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">
-                  Verified Patient
-                </span>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Input Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <div>
+                  <label className="block font-bold text-on-surface mb-1.5 text-xs uppercase tracking-wider text-outline">Full Legal Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={profile.name}
+                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium text-xs sm:text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-on-surface"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-on-surface mb-1.5 text-xs uppercase tracking-wider text-outline">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    value={profile.email}
+                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium text-xs sm:text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-on-surface"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-on-surface mb-1.5 text-xs uppercase tracking-wider text-outline">Mobile Phone Number</label>
+                  <input
+                    type="tel"
+                    required
+                    value={profile.phone}
+                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium text-xs sm:text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-on-surface"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-on-surface mb-1.5 text-xs uppercase tracking-wider text-outline">Date of Birth</label>
+                  <input
+                    type="text"
+                    required
+                    value={profile.dob}
+                    onChange={(e) => setProfile({ ...profile, dob: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium text-xs sm:text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-on-surface"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block font-bold text-on-surface mb-1">Full Legal Name</label>
+                <label className="block font-bold text-on-surface mb-1.5 text-xs uppercase tracking-wider text-outline">Residential Address</label>
                 <input
                   type="text"
-                  value={profile.name}
-                  onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium focus:outline-none focus:border-primary"
+                  required
+                  value={profile.address}
+                  onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium text-xs sm:text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-on-surface"
                 />
               </div>
 
-              <div>
-                <label className="block font-bold text-on-surface mb-1">Email Address</label>
-                <input
-                  type="email"
-                  value={profile.email}
-                  onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-on-surface mb-1">Mobile Phone Number</label>
-                <input
-                  type="tel"
-                  value={profile.phone}
-                  onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-on-surface mb-1">Date of Birth</label>
-                <input
-                  type="text"
-                  value={profile.dob}
-                  onChange={(e) => setProfile({ ...profile, dob: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium focus:outline-none focus:border-primary"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-bold text-on-surface mb-1">Residential Address</label>
-              <input
-                type="text"
-                value={profile.address}
-                onChange={(e) => setProfile({ ...profile, address: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-medium focus:outline-none focus:border-primary"
-              />
-            </div>
-
-            <div className="pt-2">
-              <label className="block font-bold text-on-surface mb-2">Emergency Contact</label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-surface-container-low rounded-xl border border-surface-container-high">
-                <div>
-                  <span className="text-outline text-[10px] block uppercase font-bold">Name</span>
-                  <span className="font-bold text-on-surface">{profile.emergencyContact.name}</span>
-                </div>
-                <div>
-                  <span className="text-outline text-[10px] block uppercase font-bold">Relationship</span>
-                  <span className="font-bold text-on-surface">{profile.emergencyContact.relationship}</span>
-                </div>
-                <div>
-                  <span className="text-outline text-[10px] block uppercase font-bold">Phone</span>
-                  <span className="font-bold text-primary font-mono">{profile.emergencyContact.phone}</span>
+              {/* Emergency Contact */}
+              <div className="pt-2">
+                <label className="block font-bold text-on-surface mb-2 text-xs uppercase tracking-wider text-outline">Emergency Contact Information</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-surface-container-low rounded-xl border border-surface-container-high">
+                  <div>
+                    <span className="text-outline text-[10px] block uppercase font-bold">Contact Name</span>
+                    <span className="font-bold text-on-surface text-sm">{profile.emergencyContact.name}</span>
+                  </div>
+                  <div>
+                    <span className="text-outline text-[10px] block uppercase font-bold">Relationship</span>
+                    <span className="font-bold text-on-surface text-sm">{profile.emergencyContact.relationship}</span>
+                  </div>
+                  <div>
+                    <span className="text-outline text-[10px] block uppercase font-bold">Phone Number</span>
+                    <span className="font-bold text-primary font-mono text-sm">{profile.emergencyContact.phone}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="pt-3 flex justify-end">
-              <button
-                type="submit"
-                className="px-6 py-2.5 bg-primary hover:bg-primary-container text-white font-bold rounded-xl shadow-md transition-all cursor-pointer"
-              >
-                Save Profile Changes
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Tab 2: Insurance */}
-        {activeTab === 'insurance' && (
-          <div className="space-y-4 text-xs">
-            <h3 className="font-headline font-bold text-base text-on-surface">Dental Insurance Provider</h3>
-            <div className="p-4 bg-secondary/5 border border-secondary/20 rounded-xl space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-secondary text-sm">{profile.insurance.provider}</span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-secondary-fixed text-on-secondary-fixed">
-                  {profile.insurance.status}
-                </span>
+              {/* Action */}
+              <div className="pt-4 flex justify-end">
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-primary hover:bg-primary-container text-white font-bold rounded-xl shadow-md transition-all cursor-pointer text-xs sm:text-sm flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[18px]">save</span>
+                  <span>Save Profile Changes</span>
+                </button>
               </div>
-              <p className="text-on-surface-variant leading-relaxed">
-                Your benefits cover 100% of biannual preventative cleanings, 80% of basic composite restorations, and 50% of major orthodontic procedures.
-              </p>
-            </div>
+            </motion.form>
+          )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          {/* Tab 2: Notifications & Alerts */}
+          {activeTab === 'notifications' && (
+            <motion.div
+              key="notifications"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 text-xs sm:text-sm"
+            >
               <div>
-                <label className="block font-bold text-on-surface mb-1">Subscriber ID / Policy Number</label>
-                <input
-                  type="text"
-                  defaultValue={profile.insurance.policyNumber}
-                  className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-mono font-medium"
-                />
+                <h3 className="font-headline font-bold text-base text-on-surface">Notification Preferences</h3>
+                <p className="text-xs text-on-surface-variant mt-0.5">Control how and when Smile Clinic communicates clinical and billing updates with you.</p>
               </div>
+
+              <div className="space-y-3 pt-2">
+                <label className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-surface-container-high cursor-pointer hover:bg-surface-container transition-colors">
+                  <div className="pr-4">
+                    <span className="font-bold text-on-surface block text-sm">SMS Appointment Reminders</span>
+                    <span className="text-xs text-on-surface-variant">Receive automated text messages 48h and 2h before scheduled appointments.</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={smsReminders}
+                    onChange={(e) => {
+                      setSmsReminders(e.target.checked);
+                      showToast("SMS preferences updated.");
+                    }}
+                    className="w-5 h-5 rounded text-primary accent-primary cursor-pointer shrink-0"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-surface-container-high cursor-pointer hover:bg-surface-container transition-colors">
+                  <div className="pr-4">
+                    <span className="font-bold text-on-surface block text-sm">Email Radiographs & Treatment Summaries</span>
+                    <span className="text-xs text-on-surface-variant">Send high-resolution DICOM x-rays and doctor notes directly to your registered inbox.</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={emailSummaries}
+                    onChange={(e) => {
+                      setEmailSummaries(e.target.checked);
+                      showToast("Email preferences updated.");
+                    }}
+                    className="w-5 h-5 rounded text-primary accent-primary cursor-pointer shrink-0"
+                  />
+                </label>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Tab 3: Security & Passkeys */}
+          {activeTab === 'security' && (
+            <motion.div
+              key="security"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 text-xs sm:text-sm"
+            >
               <div>
-                <label className="block font-bold text-on-surface mb-1">Group Number</label>
-                <input
-                  type="text"
-                  defaultValue={profile.insurance.groupId}
-                  className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-xl border border-surface-container-high font-mono font-medium"
-                />
+                <h3 className="font-headline font-bold text-base text-on-surface">Security & Access Controls</h3>
+                <p className="text-xs text-on-surface-variant mt-0.5">Configure two-factor verification and cryptographic passkeys for your electronic health records.</p>
               </div>
-            </div>
 
-            <div className="pt-2">
-              <button
-                onClick={() => showToast("Insurance card upload simulated! Front desk notified.")}
-                className="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px]">upload_file</span>
-                <span>Upload New Insurance Card Front/Back</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: Notifications */}
-        {activeTab === 'notifications' && (
-          <div className="space-y-4 text-xs">
-            <h3 className="font-headline font-bold text-base text-on-surface">Notification Preferences</h3>
-            <p className="text-on-surface-variant">Control how and when Smile Clinic communicates clinical updates with you.</p>
-
-            <div className="space-y-3 pt-2">
-              <label className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl cursor-pointer">
-                <div>
-                  <span className="font-bold text-on-surface block">SMS Appointment Reminders</span>
-                  <span className="text-[11px] text-on-surface-variant">Receive automated text messages 48h and 2h before visits.</span>
+              <div className="p-4 bg-surface-container-low rounded-xl border border-surface-container-high space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="pr-4">
+                    <span className="font-bold text-on-surface block text-sm">Two-Factor Authentication (2FA)</span>
+                    <span className="text-xs text-on-surface-variant">Requires a one-time verification code when accessing the portal from unfamiliar devices.</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={twoFactorAuth}
+                    onChange={(e) => {
+                      setTwoFactorAuth(e.target.checked);
+                      showToast("Two-factor security toggled.");
+                    }}
+                    className="w-5 h-5 rounded text-primary accent-primary cursor-pointer shrink-0"
+                  />
                 </div>
-                <input
-                  type="checkbox"
-                  checked={smsReminders}
-                  onChange={(e) => {
-                    setSmsReminders(e.target.checked);
-                    showToast("SMS preferences updated.");
-                  }}
-                  className="w-5 h-5 rounded text-primary accent-primary cursor-pointer"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl cursor-pointer">
-                <div>
-                  <span className="font-bold text-on-surface block">Email Radiograph & Treatment Notes</span>
-                  <span className="text-[11px] text-on-surface-variant">Send high-resolution DICOM x-rays directly to your inbox.</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={emailSummaries}
-                  onChange={(e) => {
-                    setEmailSummaries(e.target.checked);
-                    showToast("Email preferences updated.");
-                  }}
-                  className="w-5 h-5 rounded text-primary accent-primary cursor-pointer"
-                />
-              </label>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 4: Security */}
-        {activeTab === 'security' && (
-          <div className="space-y-4 text-xs">
-            <h3 className="font-headline font-bold text-base text-on-surface">Security & Electronic Health Records</h3>
-            <div className="p-4 bg-surface-container-low rounded-xl space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="font-bold text-on-surface block">Two-Factor Authentication (2FA)</span>
-                  <span className="text-[11px] text-on-surface-variant">Requires SMS verification code when logging in from new devices.</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={twoFactorAuth}
-                  onChange={(e) => {
-                    setTwoFactorAuth(e.target.checked);
-                    showToast("Two-factor security toggled.");
-                  }}
-                  className="w-5 h-5 rounded text-primary accent-primary cursor-pointer"
-                />
               </div>
-            </div>
 
-            <div className="p-4 bg-surface-container-low rounded-xl flex items-center justify-between">
-              <div>
-                <span className="font-bold text-on-surface block">Passkey / Biometric Login</span>
-                <span className="text-[11px] text-on-surface-variant">Windows Hello / Apple Face ID credentials linked.</span>
+              <div className="p-4 bg-surface-container-low rounded-xl border border-surface-container-high flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-on-surface block text-sm">Passkey / Biometric Authentication</span>
+                  <span className="text-xs text-on-surface-variant">Windows Hello / Apple Touch ID & Face ID credentials enrolled.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => showToast("Biometric passkey verified on this device!")}
+                  className="px-4 py-2 rounded-xl bg-primary/10 text-primary font-bold hover:bg-primary/20 transition-colors cursor-pointer text-xs shrink-0"
+                >
+                  Configure Passkey
+                </button>
               </div>
-              <button
-                onClick={() => showToast("Biometric passkey verified on this device!")}
-                className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary font-bold hover:bg-primary/20 cursor-pointer"
-              >
-                Configure Passkey
-              </button>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
