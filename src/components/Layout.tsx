@@ -172,7 +172,7 @@ export default function Layout() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.98 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-80 sm:w-96 bg-surface-container-lowest rounded-2xl shadow-xl border border-surface-container-high z-50 overflow-hidden"
+                    className="absolute right-0 mt-2 w-[calc(100vw-32px)] max-w-sm sm:w-96 bg-surface-container-lowest rounded-2xl shadow-xl border border-surface-container-high z-50 overflow-hidden"
                   >
                     <div className="p-4 border-b border-surface-container-high flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -263,7 +263,7 @@ export default function Layout() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.98 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-64 bg-surface-container-lowest rounded-2xl shadow-xl border border-surface-container-high z-50 p-2"
+                    className="absolute right-0 mt-2 w-[calc(100vw-32px)] max-w-xs sm:w-64 bg-surface-container-lowest rounded-2xl shadow-xl border border-surface-container-high z-50 p-2"
                   >
                     <div className="p-3 bg-surface-container-low rounded-xl mb-2">
                       <span className="text-xs font-bold text-on-surface block">{initialPatientProfile.name}</span>

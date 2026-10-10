@@ -331,7 +331,7 @@ export default function Dashboard() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto text-xs sm:text-sm"
+              className="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto text-xs sm:text-sm max-h-[90vh]"
             >
               <div className="p-5 sm:p-6 border-b border-surface-container-low flex justify-between items-center bg-surface-container-lowest shrink-0">
                 <div className="flex items-center gap-3">
@@ -352,7 +352,7 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              <div className="p-5 sm:p-6 space-y-4">
+              <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
                 <div>
                   <span className="text-[10px] text-outline uppercase font-bold tracking-wider block">Procedure / Service</span>
                   <span className="font-bold text-base text-on-surface block mt-0.5">{selectedVisit.service}</span>
@@ -396,9 +396,9 @@ export default function Dashboard() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto text-xs sm:text-sm p-6 space-y-4"
+              className="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto text-xs sm:text-sm max-h-[90vh]"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-surface-container-high">
+              <div className="flex items-center justify-between p-5 border-b border-surface-container-high shrink-0">
                 <h3 className="font-bold text-base text-on-surface">Reschedule Upcoming Visit</h3>
                 <button
                   type="button"
@@ -409,20 +409,22 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              <p className="text-on-surface-variant">
-                Select a new slot for <strong>Routine Cleaning & Checkup</strong> with Dr. Priya Patel:
-              </p>
+              <div className="p-5 space-y-4 overflow-y-auto flex-1">
+                <p className="text-on-surface-variant">
+                  Select a new slot for <strong>Routine Cleaning & Checkup</strong> with Dr. Priya Patel:
+                </p>
 
-              <div>
-                <label className="block font-bold text-on-surface mb-1">Select New Date *</label>
-                <input
-                  type="date"
-                  defaultValue="2023-11-20"
-                  className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-lg border border-surface-container-high font-medium text-xs sm:text-sm"
-                />
+                <div>
+                  <label className="block font-bold text-on-surface mb-1">Select New Date *</label>
+                  <input
+                    type="date"
+                    defaultValue="2023-11-20"
+                    className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-lg border border-surface-container-high font-medium text-xs sm:text-sm"
+                  />
+                </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="p-4 bg-surface-container-low/50 border-t border-surface-container-high flex flex-col-reverse sm:flex-row justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setRescheduleModalOpen(false)}
@@ -464,7 +466,7 @@ export default function Dashboard() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative bg-surface-container-lowest w-full max-w-sm rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto text-xs"
+              className="relative bg-surface-container-lowest w-full max-w-sm rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto text-xs max-h-[90vh]"
             >
               <div className="p-5 border-b border-surface-container-low flex justify-between items-center bg-surface-container-lowest shrink-0">
                 <div className="flex items-center gap-3">

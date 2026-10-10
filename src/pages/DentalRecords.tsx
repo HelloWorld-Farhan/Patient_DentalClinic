@@ -119,7 +119,7 @@ export default function DentalRecords() {
                 <span className="text-xs text-on-surface-variant block text-center mb-3 uppercase tracking-wider font-bold">
                   Upper Arch (Maxillary)
                 </span>
-                <div className="flex justify-center gap-1.5 md:gap-2 flex-wrap">
+                <div className="flex justify-center gap-1.5 md:gap-2 flex-wrap overflow-x-auto no-scrollbar py-1">
                   {upperArch.map((tooth) => (
                     <button
                       key={tooth.number}
@@ -142,7 +142,7 @@ export default function DentalRecords() {
 
               {/* Lower Arch */}
               <div className="w-full">
-                <div className="flex justify-center gap-1.5 md:gap-2 flex-wrap mb-3">
+                <div className="flex justify-center gap-1.5 md:gap-2 flex-wrap overflow-x-auto no-scrollbar py-1 mb-3">
                   {lowerArch.map((tooth) => (
                     <button
                       key={tooth.number}
@@ -363,7 +363,7 @@ export default function DentalRecords() {
               </div>
 
               {/* Viewport */}
-              <div className="h-[420px] w-full overflow-hidden bg-black/90 flex items-center justify-center relative flex-1">
+              <div className="h-[240px] sm:h-[360px] md:h-[440px] w-full overflow-hidden bg-black/90 flex items-center justify-center relative flex-1">
                 <img 
                   src={activeLightboxImage.imageUrl} 
                   alt={activeLightboxImage.title} 

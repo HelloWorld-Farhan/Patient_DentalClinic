@@ -393,9 +393,9 @@ export default function Appointments() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative bg-surface-container-lowest w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col z-10 my-auto text-xs sm:text-sm"
+              className="relative bg-surface-container-lowest w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col z-10 my-auto text-xs sm:text-sm max-h-[90vh]"
             >
-              <div className="flex items-center justify-between px-6 py-4 bg-primary text-white">
+              <div className="flex items-center justify-between px-6 py-4 bg-primary text-white shrink-0">
                 <h3 className="text-base sm:text-lg font-bold flex items-center gap-2">
                   <span className="material-symbols-outlined">add_circle</span>
                   <span>Book New Dental Appointment</span>
@@ -410,7 +410,7 @@ export default function Appointments() {
                 </button>
               </div>
 
-              <form onSubmit={handleBookingSubmit} className="p-6 flex flex-col gap-4">
+              <form onSubmit={handleBookingSubmit} className="p-4 sm:p-6 flex flex-col gap-4 overflow-y-auto flex-1">
                 <div>
                   <label className="block font-bold text-on-surface mb-1">Select Treatment Type *</label>
                   <select
@@ -479,17 +479,17 @@ export default function Appointments() {
                   />
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-surface-container">
+                <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-surface-container shrink-0">
                   <button
                     type="button"
                     onClick={() => setBookModalOpen(false)}
-                    className="px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors font-bold cursor-pointer"
+                    className="w-full sm:w-auto px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors font-bold cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-lg bg-primary text-white hover:bg-primary-container transition-colors shadow-sm font-bold cursor-pointer"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-primary text-white hover:bg-primary-container transition-colors shadow-sm font-bold cursor-pointer"
                   >
                     Confirm Booking Request
                   </button>
@@ -518,9 +518,9 @@ export default function Appointments() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative bg-surface-container-lowest w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col z-10 my-auto text-xs sm:text-sm"
+              className="relative bg-surface-container-lowest w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col z-10 my-auto text-xs sm:text-sm max-h-[90vh]"
             >
-              <div className="flex items-center justify-between px-6 py-4 bg-surface-container-low border-b border-surface-container-high">
+              <div className="flex items-center justify-between px-6 py-4 bg-surface-container-low border-b border-surface-container-high shrink-0">
                 <h3 className="font-bold text-base text-on-surface">{selectedNotes.title}</h3>
                 <button
                   type="button"
@@ -532,11 +532,11 @@ export default function Appointments() {
                 </button>
               </div>
 
-              <div className="p-6">
+              <div className="p-5 sm:p-6 overflow-y-auto flex-1">
                 <p className="text-on-surface-variant leading-relaxed">{selectedNotes.body}</p>
               </div>
 
-              <div className="px-6 py-3 bg-surface-container-low/50 border-t border-surface-container-high flex justify-end">
+              <div className="px-6 py-3 bg-surface-container-low/50 border-t border-surface-container-high flex justify-end shrink-0">
                 <button
                   type="button"
                   onClick={() => setSelectedNotes(null)}
@@ -568,33 +568,35 @@ export default function Appointments() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative bg-surface-container-lowest w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col z-10 my-auto text-xs sm:text-sm p-6 space-y-4"
+              className="relative bg-surface-container-lowest w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col z-10 my-auto text-xs sm:text-sm max-h-[90vh]"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-surface-container-high">
+              <div className="flex items-center justify-between p-5 border-b border-surface-container-high shrink-0">
                 <h3 className="font-bold text-base text-on-surface">Reschedule Appointment</h3>
                 <button
                   type="button"
                   onClick={() => setRescheduleModalOpen(null)}
-                  className="p-1 rounded-lg hover:bg-surface-container text-on-surface-variant"
+                  className="p-1 rounded-lg hover:bg-surface-container text-on-surface-variant cursor-pointer"
                 >
                   <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
 
-              <p className="text-on-surface-variant">
-                Select a new slot for <strong>{rescheduleModalOpen.procedure}</strong> with {rescheduleModalOpen.dentist}:
-              </p>
+              <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
+                <p className="text-on-surface-variant">
+                  Select a new slot for <strong>{rescheduleModalOpen.procedure}</strong> with {rescheduleModalOpen.dentist}:
+                </p>
 
-              <div>
-                <label className="block font-bold text-on-surface mb-1">Select New Date *</label>
-                <input
-                  type="date"
-                  defaultValue="2023-11-20"
-                  className="w-full px-3 py-2 bg-surface-container-low rounded-lg border border-surface-container-high font-medium"
-                />
+                <div>
+                  <label className="block font-bold text-on-surface mb-1">Select New Date *</label>
+                  <input
+                    type="date"
+                    defaultValue="2023-11-20"
+                    className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-lg border border-surface-container-high font-medium text-xs sm:text-sm"
+                  />
+                </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="p-4 bg-surface-container-low/50 border-t border-surface-container-high flex flex-col-reverse sm:flex-row justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setRescheduleModalOpen(null)}
@@ -636,19 +638,19 @@ export default function Appointments() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative bg-surface-container-lowest w-full max-w-sm rounded-xl shadow-2xl overflow-hidden flex flex-col z-10 my-auto text-xs p-6 space-y-4"
+              className="relative bg-surface-container-lowest w-full max-w-sm rounded-xl shadow-2xl overflow-hidden flex flex-col z-10 my-auto text-xs max-h-[90vh]"
             >
-              <div className="text-center space-y-2">
+              <div className="p-5 sm:p-6 overflow-y-auto flex-1 text-center space-y-3">
                 <div className="w-12 h-12 rounded-full bg-error-container text-error flex items-center justify-center mx-auto">
                   <span className="material-symbols-outlined text-[26px]">event_busy</span>
                 </div>
                 <h3 className="font-bold text-base text-on-surface">Cancel Appointment?</h3>
-                <p className="text-on-surface-variant leading-relaxed">
+                <p className="text-on-surface-variant leading-relaxed text-xs">
                   Are you sure you want to cancel your visit for <strong>{cancelModalOpen.procedure}</strong> with {cancelModalOpen.dentist}?
                 </p>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="p-4 bg-surface-container-low/50 border-t border-surface-container-high flex flex-col-reverse sm:flex-row justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setCancelModalOpen(null)}

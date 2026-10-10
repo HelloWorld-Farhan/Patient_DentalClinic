@@ -338,7 +338,7 @@ export default function Billing() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative bg-surface-container-lowest rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-surface-container-high z-10 my-auto text-xs sm:text-sm"
+              className="relative bg-surface-container-lowest rounded-2xl max-w-lg w-full p-5 sm:p-8 shadow-2xl border border-surface-container-high z-10 my-auto text-xs sm:text-sm max-h-[90vh] overflow-y-auto"
             >
               <button
                 type="button"

@@ -182,8 +182,8 @@ export default function Signup() {
                   </div>
                 </div>
 
-                {/* Clinic Photo Accent */}
-                <div className="mt-8 rounded-xl overflow-hidden relative shadow-sm border border-surface-container-high">
+                {/* Clinic Photo Accent (Desktop) */}
+                <div className="hidden lg:block mt-8 rounded-xl overflow-hidden relative shadow-sm border border-surface-container-high">
                   <img
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzkdhELD1wZKp2_kTNJxIE8Qy1AQzlBGtzLar04x0Xq8Zn5CwCZu80v5B_waa-YhuM5G4rvhkqZto0K5sk8GZ4yvFoYM-PMYi0wGM8571FVoQAkgkeQXyZHjIT8Pu9e_YVCMmeH5zfCIAfvdnIj6BdKcSD0GIQQgLk05pwMRvHdtW-uH3rd4hIqa1ST0M4Dsme_JinopgmIWNnrZcBCqwVDI-o0iwNHK87gPv73y9hpsk42lg91dDB"
                     alt="Modern high-tech dental operatory clinic room"
@@ -198,8 +198,8 @@ export default function Signup() {
                 </div>
               </div>
 
-              {/* Trust Assurance Box */}
-              <div className="bg-surface-container-lowest p-5 rounded-2xl shadow-sm border border-surface-container-high/60 flex items-start gap-3">
+              {/* Trust Assurance Box (Desktop) */}
+              <div className="hidden lg:flex bg-surface-container-lowest p-5 rounded-2xl shadow-sm border border-surface-container-high/60 items-start gap-3">
                 <div className="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-primary shrink-0 border border-surface-container-high">
                   <span className="material-symbols-outlined text-[22px]">lock</span>
                 </div>

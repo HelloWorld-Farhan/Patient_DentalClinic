@@ -304,7 +304,7 @@ export default function ForgotPassword() {
                     </label>
                     
                     {/* 6 OTP Boxes */}
-                    <div className="flex items-center justify-center gap-2 sm:gap-3" onPaste={handleOtpPaste}>
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 md:gap-3" onPaste={handleOtpPaste}>
                       {otp.map((digit, index) => (
                         <input
                           key={index}
@@ -315,7 +315,7 @@ export default function ForgotPassword() {
                           value={digit}
                           onChange={(e) => handleOtpChange(index, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                          className={`w-11 h-13 sm:w-12 sm:h-14 text-center font-bold text-lg sm:text-xl rounded-xl border bg-surface-container-low text-on-surface transition-all focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary ${
+                          className={`w-9 h-11 sm:w-11 sm:h-13 md:w-12 md:h-14 text-center font-bold text-base sm:text-lg md:text-xl rounded-xl border bg-surface-container-low text-on-surface transition-all focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary ${
                             otpError ? 'border-red-400 bg-red-50' : 'border-surface-container-high focus:border-primary'
                           }`}
                         />
