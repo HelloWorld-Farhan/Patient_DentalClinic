@@ -7,7 +7,7 @@ export const OFFICIAL_PATIENT_CREDENTIALS = {
   email: 'patient@smileclinic.com',
   patientId: 'PT-84920',
   password: 'Patient@Smile2026#',
-  name: 'Sarah Jenkins',
+  name: 'Sarah Jenkins (Demo Patient)',
 };
 
 export default function Login() {
@@ -18,12 +18,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const navigate = useNavigate();
-
-  const fillOfficialCredentials = () => {
-    setIdentifier(OFFICIAL_PATIENT_CREDENTIALS.email);
-    setPassword(OFFICIAL_PATIENT_CREDENTIALS.password);
-    setLoginError(null);
-  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +49,7 @@ export default function Login() {
       }, 400);
     } else {
       setLoginError(
-        'Invalid credentials. Please enter the official Patient credentials (patient@smileclinic.com / Patient@Smile2026#) or your registered patient account.'
+        'Invalid credentials. Please enter authorized patient email/ID and password.'
       );
     }
   };
@@ -135,27 +129,6 @@ export default function Login() {
                   </p>
                 </div>
 
-                {/* Official Patient Credentials Helper Card */}
-                <div className="mb-4 p-3.5 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between gap-3">
-                  <div className="text-xs">
-                    <span className="font-bold text-primary block">Official Patient Credentials</span>
-                    <div className="text-on-surface-variant font-mono text-[11px] mt-0.5">
-                      <span className="font-semibold text-on-surface">{OFFICIAL_PATIENT_CREDENTIALS.email}</span> &bull; Pass:{' '}
-                      <span className="bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface font-bold">
-                        {OFFICIAL_PATIENT_CREDENTIALS.password}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={fillOfficialCredentials}
-                    className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-container transition-all flex items-center gap-1 shrink-0 cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">auto_fix_high</span>
-                    <span>Quick Fill</span>
-                  </button>
-                </div>
-
                 {loginError && (
                   <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2">
                     <span className="material-symbols-outlined text-[18px] shrink-0 text-red-600">error</span>
@@ -182,7 +155,7 @@ export default function Login() {
                           setIdentifier(e.target.value);
                           setLoginError(null);
                         }}
-                        placeholder="patient@smileclinic.com or PT-84920"
+                        placeholder="name@example.com or PT-84920"
                         className="w-full pl-11 pr-4 py-2.5 bg-surface-container-low rounded-xl text-xs sm:text-sm font-medium text-on-surface placeholder:text-outline border border-surface-container-high focus:outline-none focus:bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                       />
                     </div>
@@ -213,7 +186,7 @@ export default function Login() {
                           setPassword(e.target.value);
                           setLoginError(null);
                         }}
-                        placeholder="Patient@Smile2026#"
+                        placeholder="••••••••••••"
                         className="w-full pl-11 pr-11 py-2.5 bg-surface-container-low rounded-xl text-xs sm:text-sm font-medium text-on-surface placeholder:text-outline border border-surface-container-high focus:outline-none focus:bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                       />
                       <button

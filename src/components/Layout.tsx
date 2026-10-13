@@ -171,10 +171,10 @@ export default function Layout() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-bold text-on-surface truncate group-hover:text-primary transition-colors">
-                  {initialPatientProfile.name}
+                  {localStorage.getItem('patient_name') || initialPatientProfile.name}
                 </div>
                 <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 truncate">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Patient #{initialPatientProfile.id} • Active
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Patient #{initialPatientProfile.id} • Demo Account
                 </div>
               </div>
             </Link>
@@ -397,10 +397,10 @@ export default function Layout() {
                       className="fixed top-16 right-3 left-auto sm:absolute sm:top-full sm:mt-2 w-[calc(100vw-32px)] max-w-xs sm:w-64 bg-surface-container-lowest rounded-2xl shadow-2xl border border-surface-container-high z-[9999] p-2"
                     >
                     <div className="p-3 bg-surface-container-low rounded-xl mb-2">
-                      <span className="text-xs font-bold text-on-surface block">{initialPatientProfile.name}</span>
-                      <span className="text-[11px] text-on-surface-variant block">{initialPatientProfile.email}</span>
+                      <span className="text-xs font-bold text-on-surface block">{localStorage.getItem('patient_name') || initialPatientProfile.name}</span>
+                      <span className="text-[11px] text-on-surface-variant block">{localStorage.getItem('patient_email') || initialPatientProfile.email}</span>
                       <span className="mt-1.5 inline-block text-[10px] font-bold text-secondary bg-secondary-fixed/60 px-2 py-0.5 rounded-full">
-                        Delta Dental Premier Active
+                        Delta Dental Premier • Demo Mode
                       </span>
                     </div>
 

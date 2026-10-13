@@ -10,8 +10,8 @@ import {
 
 export const initialPatientProfile: PatientProfile = {
   id: 'PT-84920',
-  name: 'Ananya Verma',
-  email: 'ananya.verma@smileclinic.com',
+  name: 'Sarah Jenkins (Demo Patient)',
+  email: 'patient@smileclinic.com',
   phone: '(555) 349-8821',
   dob: '24 / 08 / 1994',
   gender: 'Female',
