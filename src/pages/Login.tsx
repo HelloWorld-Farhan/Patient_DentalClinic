@@ -2,22 +2,62 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
+// Official Patient Credentials
+export const OFFICIAL_PATIENT_CREDENTIALS = {
+  email: 'patient@smileclinic.com',
+  patientId: 'PT-84920',
+  password: 'Patient@Smile2026#',
+  name: 'Sarah Jenkins',
+};
+
 export default function Login() {
-  const [identifier, setIdentifier] = useState('ananya.verma@smileclinic.com');
-  const [password, setPassword] = useState('DentalCare2026!');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const fillOfficialCredentials = () => {
+    setIdentifier(OFFICIAL_PATIENT_CREDENTIALS.email);
+    setPassword(OFFICIAL_PATIENT_CREDENTIALS.password);
+    setLoginError(null);
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      localStorage.setItem('smileclinic_patient_auth', 'true');
-      navigate('/dashboard');
-    }, 400);
+    setLoginError(null);
+
+    const inputId = identifier.trim().toLowerCase();
+    const inputPass = password;
+
+    const isOfficial =
+      (inputId === OFFICIAL_PATIENT_CREDENTIALS.email.toLowerCase() ||
+        inputId === OFFICIAL_PATIENT_CREDENTIALS.patientId.toLowerCase()) &&
+      inputPass === OFFICIAL_PATIENT_CREDENTIALS.password;
+
+    const registeredPatients = JSON.parse(localStorage.getItem('smileclinic_registered_patients') || '[]');
+    const registered = registeredPatients.find(
+      (p: any) =>
+        (p.email.toLowerCase() === inputId || (p.phone && p.phone.replace(/\D/g, '') === inputId.replace(/\D/g, ''))) &&
+        p.password === inputPass
+    );
+
+    if (isOfficial || registered) {
+      setIsLoading(true);
+      setTimeout(() => {
+        setIsLoading(false);
+        localStorage.setItem('smileclinic_patient_auth', 'true');
+        localStorage.setItem('patient_email', isOfficial ? OFFICIAL_PATIENT_CREDENTIALS.email : registered.email);
+        localStorage.setItem('patient_name', isOfficial ? OFFICIAL_PATIENT_CREDENTIALS.name : registered.name);
+        navigate('/dashboard');
+      }, 400);
+    } else {
+      setLoginError(
+        'Invalid credentials. Please enter the official Patient credentials (patient@smileclinic.com / Patient@Smile2026#) or your registered patient account.'
+      );
+    }
   };
 
   const handleSocialLogin = () => {
@@ -70,7 +110,7 @@ export default function Login() {
             <div className="w-full lg:w-7/12 p-6 sm:p-10 lg:p-12 flex flex-col justify-between relative z-10">
               <div className="w-full max-w-md mx-auto">
                 {/* Brand Pill */}
-                <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-3 mb-5">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shadow-xs">
                     <span className="material-symbols-outlined text-[28px] text-primary">dentistry</span>
                   </div>
@@ -86,7 +126,7 @@ export default function Login() {
                 </div>
 
                 {/* Hero Title */}
-                <div className="mb-6">
+                <div className="mb-4">
                   <h1 className="font-headline font-bold text-2xl sm:text-3xl text-on-surface mb-1">
                     Welcome to your Patient Portal
                   </h1>
@@ -95,11 +135,39 @@ export default function Login() {
                   </p>
                 </div>
 
+                {/* Official Patient Credentials Helper Card */}
+                <div className="mb-4 p-3.5 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between gap-3">
+                  <div className="text-xs">
+                    <span className="font-bold text-primary block">Official Patient Credentials</span>
+                    <div className="text-on-surface-variant font-mono text-[11px] mt-0.5">
+                      <span className="font-semibold text-on-surface">{OFFICIAL_PATIENT_CREDENTIALS.email}</span> &bull; Pass:{' '}
+                      <span className="bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface font-bold">
+                        {OFFICIAL_PATIENT_CREDENTIALS.password}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={fillOfficialCredentials}
+                    className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-container transition-all flex items-center gap-1 shrink-0 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">auto_fix_high</span>
+                    <span>Quick Fill</span>
+                  </button>
+                </div>
+
+                {loginError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2">
+                    <span className="material-symbols-outlined text-[18px] shrink-0 text-red-600">error</span>
+                    <span>{loginError}</span>
+                  </div>
+                )}
+
                 {/* Login Form */}
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-on-surface mb-1.5" htmlFor="patient-id">
-                      Email Address or Patient ID
+                      Email Address or Patient ID *
                     </label>
                     <div className="relative flex items-center">
                       <span className="material-symbols-outlined absolute left-3.5 text-outline text-[20px] pointer-events-none">
@@ -110,8 +178,11 @@ export default function Login() {
                         type="text"
                         required
                         value={identifier}
-                        onChange={(e) => setIdentifier(e.target.value)}
-                        placeholder="name@example.com or PT-84920"
+                        onChange={(e) => {
+                          setIdentifier(e.target.value);
+                          setLoginError(null);
+                        }}
+                        placeholder="patient@smileclinic.com or PT-84920"
                         className="w-full pl-11 pr-4 py-2.5 bg-surface-container-low rounded-xl text-xs sm:text-sm font-medium text-on-surface placeholder:text-outline border border-surface-container-high focus:outline-none focus:bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                       />
                     </div>
@@ -120,7 +191,7 @@ export default function Login() {
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="text-xs font-bold text-on-surface" htmlFor="portal-password">
-                        Password
+                        Password *
                       </label>
                       <Link
                         to="/forgot-password"
@@ -138,15 +209,18 @@ export default function Login() {
                         type={showPassword ? 'text' : 'password'}
                         required
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••••••"
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          setLoginError(null);
+                        }}
+                        placeholder="Patient@Smile2026#"
                         className="w-full pl-11 pr-11 py-2.5 bg-surface-container-low rounded-xl text-xs sm:text-sm font-medium text-on-surface placeholder:text-outline border border-surface-container-high focus:outline-none focus:bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 text-outline hover:text-on-surface transition-colors p-1 cursor-pointer"
-                        aria-label="Toggle password visibility"
+                        title={showPassword ? 'Hide password' : 'Show password'}
                       >
                         <span className="material-symbols-outlined text-[20px]">
                           {showPassword ? 'visibility_off' : 'visibility'}
@@ -219,90 +293,75 @@ export default function Login() {
                   </div>
                 </form>
 
-                <div className="mt-6 text-center pt-2">
-                  <p className="text-xs sm:text-sm text-on-surface-variant">
-                    New patient?{' '}
-                    <Link
-                      to="/signup"
-                      className="font-bold text-primary hover:text-primary-container transition-colors underline decoration-secondary-container underline-offset-4 ml-1"
-                    >
-                      Register your Smile Clinic account
+                {/* Sign up prompt */}
+                <div className="mt-6 pt-5 border-t border-surface-container-high text-center">
+                  <p className="text-xs text-on-surface-variant">
+                    New patient to Smile Clinic?{' '}
+                    <Link to="/signup" className="font-bold text-primary hover:underline">
+                      Create Patient Account &rarr;
                     </Link>
                   </p>
                 </div>
               </div>
 
-              {/* Security Badges */}
-              <div className="w-full max-w-md mx-auto pt-6 mt-4 border-t border-surface-container-high flex flex-col sm:flex-row items-center justify-between gap-2 text-on-surface-variant text-xs">
-                <div className="flex items-center gap-2 text-[11px]">
-                  <span className="material-symbols-outlined text-[16px] text-tertiary">lock</span>
-                  <span>256-Bit SSL</span>
-                  <span className="text-outline">·</span>
-                  <span>HIPAA & GDPR</span>
-                </div>
-                <div className="flex items-center gap-1 text-[11px]">
-                  <span className="material-symbols-outlined text-[16px] text-primary">support_agent</span>
-                  <a href="tel:5552345678" className="text-on-surface font-medium hover:text-primary transition-colors">
-                    (555) 234-5678
-                  </a>
-                </div>
+              {/* Security info footer */}
+              <div className="pt-6 border-t border-surface-container-high/60 flex items-center justify-between text-[11px] text-outline">
+                <span>Smile Clinic EHR Network &bull; v2026.4</span>
+                <span className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Server Online
+                </span>
               </div>
             </div>
 
-            {/* Right: Hospital Visual & Ambient Panel (5 cols on desktop) */}
-            <div className="w-full lg:w-5/12 bg-surface-container-low relative flex flex-col justify-between p-6 sm:p-10 lg:p-12 overflow-hidden border-t lg:border-t-0 lg:border-l border-surface-container-high">
-              {/* Ambient Glow Orbs */}
-              <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-secondary-fixed/40 blur-3xl pointer-events-none"></div>
-              <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-primary-fixed/30 blur-3xl pointer-events-none"></div>
+            {/* Right: Pitch Visual (5 cols on desktop) */}
+            <div className="hidden lg:flex w-full lg:w-5/12 bg-gradient-to-br from-primary to-[#004f58] p-10 text-white flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-teal-400/10 blur-3xl pointer-events-none"></div>
 
               <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-lowest/90 backdrop-blur-md shadow-xs border border-surface-container-high mb-6">
-                  <span className="material-symbols-outlined text-[18px] text-tertiary">verified</span>
-                  <span className="text-xs font-bold text-on-surface">Integrated Dental Cloud System</span>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold mb-6 border border-white/20">
+                  <span className="material-symbols-outlined text-[16px] text-teal-300">verified</span>
+                  <span>Patient-Centered Dentistry</span>
                 </div>
-                <h2 className="font-headline font-bold text-2xl sm:text-3xl text-on-surface mb-2">
-                  Gentle, data-backed oral healthcare.
+
+                <h2 className="font-headline font-bold text-3xl mb-4 leading-tight">
+                  Your complete dental health in one secure place.
                 </h2>
-                <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                  Log in safely to check scheduled deep cleanings, review high-definition panoramic scans, and receive real-time direct notes from your attending clinician.
+                <p className="text-white/80 text-sm leading-relaxed mb-6 font-light">
+                  View high-resolution 3D radiographic scans, treatment schedules, transparent billing breakdown, and message your dental care team directly.
                 </p>
-              </div>
 
-              {/* Photo Showcase */}
-              <div className="relative z-10 my-6">
-                <div className="relative rounded-2xl overflow-hidden shadow-lg border border-surface-container-high h-60 w-full group">
-                  <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuCfiMxq-Ll2OLxhPZ43v6Lxu1PiIwMXgaT63zBXWivjSpYGDS8OogsI6pOXLkLMjwR4ptZXoGXMRzviKVaDj6vMxZcSNceBKA6ktsdqeQLgV4-Yx3B6MUu5TyPDS-Ll2shmhAM7_q2O7zNgmm60C7ecwMLbHRwb_qOn2uZXjUnfltlMJbkg76r4IckMwTwewFDGtzS28aU-_83RIOujPi5HZX0ZUd3281dQGOt2k01HnczUkSSeWU"
-                    alt="A brightly lit, ultramodern smile clinic with a patient consulting an attentive dentist"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
-                    <div className="flex items-center gap-1.5 text-teal-300 text-xs font-bold">
-                      <span className="material-symbols-outlined text-[16px]">stars</span>
-                      <span>Patient Community</span>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[18px] text-teal-200">calendar_month</span>
                     </div>
-                    <p className="font-headline font-bold text-lg text-white">Over 15,000 smiles cared for</p>
+                    <span>Instant Real-Time Appointment Booking</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[18px] text-teal-200">receipt_long</span>
+                    </div>
+                    <span>Transparent Treatment Estimates &amp; Insurance</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[18px] text-teal-200">sms</span>
+                    </div>
+                    <span>Dual Email &amp; Mobile Phone OTP Verification</span>
                   </div>
                 </div>
               </div>
 
-              {/* Check-in Pass Card */}
-              <div className="relative z-10 bg-surface-container-lowest rounded-xl p-4 shadow-sm border border-surface-container-high">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
-                    Upcoming Check-in Ready
-                  </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-primary-fixed text-on-primary-fixed">
-                    Digital Pass
-                  </span>
-                </div>
+              <div className="relative z-10 pt-6 border-t border-white/20">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                    Dr
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold">
+                    4.9
                   </div>
-                  <div>
-                    <div className="text-xs font-bold text-on-surface">Dr. Priya Patel, DDS</div>
-                    <div className="text-[11px] text-on-surface-variant">Preventive Hygiene & 3D Scan</div>
+                  <div className="text-xs">
+                    <div className="font-bold">Top-Rated Dental Network</div>
+                    <div className="text-white/70">Over 18,000 verified 5-star patient reviews</div>
                   </div>
                 </div>
               </div>
@@ -312,19 +371,8 @@ export default function Login() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full bg-surface-container-low py-4 border-t border-surface-container-high shadow-[0_-1px_8px_rgba(0,119,130,0.03)] z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-on-surface-variant text-xs text-center sm:text-left">
-          <div className="flex items-center justify-center sm:justify-start gap-1.5">
-            <span className="material-symbols-outlined text-[16px] text-tertiary">shield_with_heart</span>
-            <span>© 2026 Smile Clinic Health System. All health records encrypted.</span>
-          </div>
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 sm:gap-6 text-[11px] font-medium">
-            <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
-            <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
-            <Link to="/patient-rights" className="hover:text-primary transition-colors">Patient Rights</Link>
-            <Link to="/support" className="hover:text-primary transition-colors">Support Desk</Link>
-          </div>
-        </div>
+      <footer className="w-full bg-surface-container-lowest border-t border-surface-container-high py-4 text-center text-xs text-outline">
+        <p>&copy; 2026 Smile Clinic Healthcare Systems Inc. All rights reserved.</p>
       </footer>
     </div>
   );

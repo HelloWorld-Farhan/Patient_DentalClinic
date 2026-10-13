@@ -4,58 +4,133 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Signup() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [firstName, setFirstName] = useState('Sarah');
-  const [lastName, setLastName] = useState('Jenkins');
-  const [dob, setDob] = useState('24 / 08 / 1994');
-  const [phone, setPhone] = useState('(555) 349-8821');
-  const [email, setEmail] = useState('sarah.jenkins@example.com');
-  const [password, setPassword] = useState('SmileHealth2026!');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [dob, setDob] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isExistingPatient, setIsExistingPatient] = useState(false);
   const [chartNumber, setChartNumber] = useState('');
   const [insuranceProvider, setInsuranceProvider] = useState('delta');
-  const [insuranceMemberId, setInsuranceMemberId] = useState('DD-99201-P');
+  const [insuranceMemberId, setInsuranceMemberId] = useState('');
   const [agreedTerms, setAgreedTerms] = useState(true);
-  const [receiveSms, setReceiveSms] = useState(true);
+  const [step1Error, setStep1Error] = useState<string | null>(null);
 
   // Step 2 Fields
   const [visitReason, setVisitReason] = useState('Routine Cleaning & Comprehensive Exam');
-  const [lastVisit, setLastVisit] = useState('Within the last 6 months');
   const [allergies, setAllergies] = useState<string[]>(['None']);
 
-  // Step 3 Fields
-  const [twoFactorMethod, setTwoFactorMethod] = useState<'sms' | 'app'>('sms');
+  // Step 3 Fields (Dual OTP Verification)
+  const [emailOtp, setEmailOtp] = useState('');
+  const [mobileOtp, setMobileOtp] = useState('');
+  const [mockEmailOtp, setMockEmailOtp] = useState('482910');
+  const [mockMobileOtp, setMockMobileOtp] = useState('739154');
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [resendCountdown, setResendCountdown] = useState(60);
   const [preferredBranch, setPreferredBranch] = useState('Downtown Main Pavilion (100 Smile Way)');
-  const [electronicSignature, setElectronicSignature] = useState('Sarah Jenkins');
+  const [electronicSignature, setElectronicSignature] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
-  // Password requirements dynamic check
+  // Strict Password Criteria
   const hasMinLength = password.length >= 8;
+  const isRecommended12 = password.length >= 12;
   const hasUppercase = /[A-Z]/.test(password);
+  const numberCount = (password.match(/\d/g) || []).length;
+  const hasMin2Numbers = numberCount >= 2;
   const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const passwordsMatch = password.length > 0 && password === confirmPassword;
+
+  const isPasswordValid = hasMinLength && hasUppercase && hasMin2Numbers && hasSymbol;
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!hasMinLength || !hasUppercase || !hasSymbol) {
-      alert("Please ensure your password meets all 3 security requirements.");
+    setStep1Error(null);
+
+    if (!isPasswordValid) {
+      setStep1Error(
+        'Password must satisfy all criteria: 8-12+ characters, 1 uppercase letter, 2 numbers, and 1 special symbol.'
+      );
       return;
     }
+
+    if (!passwordsMatch) {
+      setStep1Error('Passwords do not match. Please verify your confirm password.');
+      return;
+    }
+
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      setStep1Error('Please enter a valid 10-digit mobile phone number for SMS OTP verification.');
+      return;
+    }
+
     setStep(2);
   };
 
   const handleStep2Submit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Generate fresh OTP codes for Step 3
+    const newEmail = Math.floor(100000 + Math.random() * 900000).toString();
+    const newMobile = Math.floor(100000 + Math.random() * 900000).toString();
+    setMockEmailOtp(newEmail);
+    setMockMobileOtp(newMobile);
+    setEmailOtp('');
+    setMobileOtp('');
+    setOtpError(null);
+    if (!electronicSignature) {
+      setElectronicSignature(`${firstName} ${lastName}`.trim());
+    }
     setStep(3);
+  };
+
+  const handleAutoFillOtp = () => {
+    setEmailOtp(mockEmailOtp);
+    setMobileOtp(mockMobileOtp);
+    setOtpError(null);
   };
 
   const handleFinalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setOtpError(null);
+
+    if (emailOtp.trim() !== mockEmailOtp) {
+      setOtpError('Invalid Email OTP code. Please enter the matching 6-digit code or click Auto-fill.');
+      return;
+    }
+
+    if (mobileOtp.trim() !== mockMobileOtp) {
+      setOtpError('Invalid Mobile SMS OTP code. Please enter the matching 6-digit code or click Auto-fill.');
+      return;
+    }
+
     setIsLoading(true);
     setTimeout(() => {
-      setIsLoading(false);
+      // Save patient to localStorage
+      const existing = JSON.parse(localStorage.getItem('smileclinic_registered_patients') || '[]');
+      const newPatient = {
+        name: `${firstName} ${lastName}`.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        dob,
+        insuranceProvider,
+        insuranceMemberId,
+        password,
+        registeredAt: new Date().toISOString(),
+      };
+      existing.push(newPatient);
+      localStorage.setItem('smileclinic_registered_patients', JSON.stringify(existing));
+
       localStorage.setItem('smileclinic_patient_auth', 'true');
+      localStorage.setItem('patient_email', newPatient.email);
+      localStorage.setItem('patient_name', newPatient.name);
+
+      setIsLoading(false);
       navigate('/dashboard');
     }, 600);
   };
@@ -65,9 +140,9 @@ export default function Signup() {
       setAllergies(['None']);
       return;
     }
-    const filtered = allergies.filter(a => a !== 'None');
+    const filtered = allergies.filter((a) => a !== 'None');
     if (filtered.includes(allergy)) {
-      const next = filtered.filter(a => a !== allergy);
+      const next = filtered.filter((a) => a !== allergy);
       setAllergies(next.length ? next : ['None']);
     } else {
       setAllergies([...filtered, allergy]);
@@ -107,7 +182,7 @@ export default function Signup() {
         <div className="flex flex-col w-full max-w-6xl mx-auto py-2 sm:py-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            {/* Left Hero/Context Panel (Desktop 4 cols) */}
+            {/* Left Hero/Context Panel */}
             <div className="lg:col-span-4 flex flex-col gap-5">
               <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-sm border border-surface-container-high/60 relative overflow-hidden">
                 <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-primary-fixed/20 blur-2xl pointer-events-none"></div>
@@ -131,7 +206,7 @@ export default function Signup() {
                   </p>
                 </div>
 
-                {/* Step Indicator (Vertical Navigation Experience) */}
+                {/* Step Indicator */}
                 <div className="space-y-3 pt-1">
                   {/* Step 1 Item */}
                   <div className={`flex items-start gap-3 transition-opacity ${step === 1 ? 'opacity-100' : 'opacity-80'}`}>
@@ -144,7 +219,7 @@ export default function Signup() {
                       <span className={`text-xs font-bold block ${step === 1 ? 'text-primary' : 'text-on-surface'}`}>
                         Step 1: Personal Details
                       </span>
-                      <span className="text-[11px] text-on-surface-variant block">Identity, contact, & credentials</span>
+                      <span className="text-[11px] text-on-surface-variant block">Identity, mobile &amp; secure credentials</span>
                     </div>
                   </div>
 
@@ -161,7 +236,7 @@ export default function Signup() {
                       <span className={`text-xs font-bold block ${step === 2 ? 'text-primary' : 'text-on-surface'}`}>
                         Step 2: Dental History
                       </span>
-                      <span className="text-[11px] text-on-surface-variant block">Prior records, allergies & coverage</span>
+                      <span className="text-[11px] text-on-surface-variant block">Prior records, allergies &amp; coverage</span>
                     </div>
                   </div>
 
@@ -176,30 +251,22 @@ export default function Signup() {
                     </div>
                     <div className="min-w-0">
                       <span className={`text-xs font-bold block ${step === 3 ? 'text-primary' : 'text-on-surface'}`}>
-                        Step 3: Security & Verification
+                        Step 3: Dual OTP Verification
                       </span>
-                      <span className="text-[11px] text-on-surface-variant block">2-factor auth & electronic consent</span>
+                      <span className="text-[11px] text-on-surface-variant block">Email &amp; Mobile SMS authentication</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Clinic Photo Accent (Desktop) */}
-                <div className="hidden lg:block mt-8 rounded-xl overflow-hidden relative shadow-sm border border-surface-container-high">
-                  <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzkdhELD1wZKp2_kTNJxIE8Qy1AQzlBGtzLar04x0Xq8Zn5CwCZu80v5B_waa-YhuM5G4rvhkqZto0K5sk8GZ4yvFoYM-PMYi0wGM8571FVoQAkgkeQXyZHjIT8Pu9e_YVCMmeH5zfCIAfvdnIj6BdKcSD0GIQQgLk05pwMRvHdtW-uH3rd4hIqa1ST0M4Dsme_JinopgmIWNnrZcBCqwVDI-o0iwNHK87gPv73y9hpsk42lg91dDB"
-                    alt="Modern high-tech dental operatory clinic room"
-                    className="w-full h-36 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
-                    <div className="flex items-center gap-1.5 text-white text-[11px] font-semibold">
-                      <span className="material-symbols-outlined text-[16px] text-teal-300">verified</span>
-                      <span>Accepting 30+ premier health networks</span>
-                    </div>
-                  </div>
+                <div className="mt-8 pt-4 border-t border-surface-container-high text-xs text-on-surface-variant">
+                  <span>Already registered? </span>
+                  <Link to="/" className="text-primary font-bold hover:underline">
+                    Sign In to Portal
+                  </Link>
                 </div>
               </div>
 
-              {/* Trust Assurance Box (Desktop) */}
+              {/* Trust Assurance Box */}
               <div className="hidden lg:flex bg-surface-container-lowest p-5 rounded-2xl shadow-sm border border-surface-container-high/60 items-start gap-3">
                 <div className="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-primary shrink-0 border border-surface-container-high">
                   <span className="material-symbols-outlined text-[22px]">lock</span>
@@ -207,13 +274,13 @@ export default function Signup() {
                 <div>
                   <span className="text-xs font-bold text-on-surface block mb-0.5">HIPAA Compliant Platform</span>
                   <p className="text-[11px] text-on-surface-variant leading-relaxed">
-                    Your health data is protected by HIPAA compliant 256-bit encryption. Smile Clinic never shares or sells your medical records.
+                    Your health data is protected by HIPAA compliant 256-bit encryption. Dual OTP verifies patient identity.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Right Form Workspace (Desktop 8 cols) */}
+            {/* Right Form Workspace */}
             <div className="lg:col-span-8 flex flex-col gap-6">
               <div className="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-sm border border-surface-container-high/60">
                 <AnimatePresence mode="wait">
@@ -226,19 +293,24 @@ export default function Signup() {
                       exit={{ opacity: 0, x: -15 }}
                       transition={{ duration: 0.25 }}
                     >
-                      {/* Step Header */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 gap-2 border-b border-surface-container-high mb-6">
                         <div>
                           <h2 className="font-headline font-bold text-xl sm:text-2xl text-on-surface">Personal Information</h2>
                           <p className="text-xs text-on-surface-variant mt-0.5">Please provide your details as they appear on legal photo ID.</p>
                         </div>
-                        <div className="flex items-center gap-1.5 text-primary text-xs font-semibold bg-surface-container-low px-3 py-1 rounded-full self-start border border-surface-container-high">
-                          <span className="material-symbols-outlined text-[16px]">schedule</span>
-                          <span>Est. completion: 3 mins</span>
-                        </div>
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary self-start border border-primary/20">
+                          Step 1 of 3
+                        </span>
                       </div>
 
-                      <form onSubmit={handleStep1Submit} className="space-y-5">
+                      {step1Error && (
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2">
+                          <span className="material-symbols-outlined text-[18px] shrink-0 text-red-600">error</span>
+                          <span>{step1Error}</span>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleStep1Submit} className="space-y-4">
                         {/* Legal Names */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
@@ -271,30 +343,25 @@ export default function Signup() {
                           </div>
                         </div>
 
-                        {/* Date of Birth & Phone */}
+                        {/* DOB and Phone */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="dob">
-                              Date of Birth (DD / MM / YYYY) <span className="text-error">*</span>
+                              Date of Birth <span className="text-error">*</span>
                             </label>
-                            <div className="relative flex items-center">
-                              <input
-                                id="dob"
-                                type="text"
-                                required
-                                value={dob}
-                                onChange={(e) => setDob(e.target.value)}
-                                placeholder="24 / 08 / 1994"
-                                className="w-full h-11 px-4 pr-10 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                              />
-                              <span className="material-symbols-outlined absolute right-3 text-on-surface-variant pointer-events-none text-[20px]">
-                                calendar_today
-                              </span>
-                            </div>
+                            <input
+                              id="dob"
+                              type="text"
+                              required
+                              value={dob}
+                              onChange={(e) => setDob(e.target.value)}
+                              placeholder="DD / MM / YYYY"
+                              className="w-full h-11 px-4 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                            />
                           </div>
                           <div>
                             <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="phone">
-                              Preferred Phone Number <span className="text-error">*</span>
+                              Mobile Phone (For SMS OTP) <span className="text-error">*</span>
                             </label>
                             <div className="relative flex items-center">
                               <input
@@ -303,11 +370,11 @@ export default function Signup() {
                                 required
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
-                                placeholder="(555) 349-8821"
+                                placeholder="+1 (555) 349-8821"
                                 className="w-full h-11 px-4 pr-10 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                               />
                               <span className="material-symbols-outlined absolute right-3 text-on-surface-variant pointer-events-none text-[20px]">
-                                call
+                                phone_iphone
                               </span>
                             </div>
                           </div>
@@ -316,7 +383,7 @@ export default function Signup() {
                         {/* Email Address */}
                         <div>
                           <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="email">
-                            Email Address <span className="text-error">*</span>
+                            Email Address (For Email OTP) <span className="text-error">*</span>
                           </label>
                           <div className="relative flex items-center">
                             <input
@@ -332,16 +399,13 @@ export default function Signup() {
                               mail
                             </span>
                           </div>
-                          <p className="text-[11px] text-on-surface-variant mt-1">
-                            Used for appointment confirmations, clinical test results, and billing receipts.
-                          </p>
                         </div>
 
-                        {/* Password Creation & Dynamic Strength Indicator */}
-                        <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high space-y-3">
+                        {/* Password and Confirm Password with Eye Icons */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="password">
-                              Create Secure Password <span className="text-error">*</span>
+                              Create Password (Min 8-12 chars) <span className="text-error">*</span>
                             </label>
                             <div className="relative flex items-center">
                               <input
@@ -350,13 +414,14 @@ export default function Signup() {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••••••"
-                                className="w-full h-11 px-4 pr-10 rounded-xl bg-surface-container-lowest text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:outline-none focus:border-primary transition-all"
+                                placeholder="e.g. Jenkins@Smile2026#"
+                                className="w-full h-11 px-4 pr-10 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:bg-white focus:outline-none focus:border-primary transition-all"
                               />
                               <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-3 text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+                                title={showPassword ? 'Hide password' : 'Show password'}
                               >
                                 <span className="material-symbols-outlined text-[20px]">
                                   {showPassword ? 'visibility_off' : 'visibility'}
@@ -365,31 +430,75 @@ export default function Signup() {
                             </div>
                           </div>
 
-                          {/* Dynamic Password Check chips */}
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-[11px]">
-                            <div className={`flex items-center gap-1.5 transition-colors ${
-                              hasMinLength ? 'text-teal-700 font-semibold' : 'text-on-surface-variant'
-                            }`}>
+                          <div>
+                            <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="confirmPassword">
+                              Confirm Password <span className="text-error">*</span>
+                            </label>
+                            <div className="relative flex items-center">
+                              <input
+                                id="confirmPassword"
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                required
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="Re-enter password"
+                                className="w-full h-11 px-4 pr-10 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:bg-white focus:outline-none focus:border-primary transition-all"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3 text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+                                title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                              >
+                                <span className="material-symbols-outlined text-[20px]">
+                                  {showConfirmPassword ? 'visibility_off' : 'visibility'}
+                                </span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Real-Time Password Criteria Checklist */}
+                        <div className="p-3 bg-surface-container-low rounded-xl border border-surface-container-high text-[11px] space-y-1">
+                          <span className="font-bold text-on-surface-variant uppercase text-[10px] block">
+                            Password Criteria:
+                          </span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                            <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-teal-700 font-bold' : 'text-on-surface-variant'}`}>
                               <span className="material-symbols-outlined text-[16px]">
                                 {hasMinLength ? 'check_circle' : 'radio_button_unchecked'}
                               </span>
-                              <span>Min. 8 characters</span>
+                              <span>8–12+ Characters ({password.length}/12)</span>
                             </div>
-                            <div className={`flex items-center gap-1.5 transition-colors ${
-                              hasUppercase ? 'text-teal-700 font-semibold' : 'text-on-surface-variant'
-                            }`}>
+                            <div className={`flex items-center gap-1.5 ${hasUppercase ? 'text-teal-700 font-bold' : 'text-on-surface-variant'}`}>
                               <span className="material-symbols-outlined text-[16px]">
                                 {hasUppercase ? 'check_circle' : 'radio_button_unchecked'}
                               </span>
-                              <span>1 uppercase letter</span>
+                              <span>1+ Uppercase Letter (A-Z)</span>
                             </div>
-                            <div className={`flex items-center gap-1.5 transition-colors ${
-                              hasSymbol ? 'text-teal-700 font-semibold' : 'text-on-surface-variant'
-                            }`}>
+                            <div className={`flex items-center gap-1.5 ${hasMin2Numbers ? 'text-teal-700 font-bold' : 'text-on-surface-variant'}`}>
+                              <span className="material-symbols-outlined text-[16px]">
+                                {hasMin2Numbers ? 'check_circle' : 'radio_button_unchecked'}
+                              </span>
+                              <span>2+ Numbers (Found {numberCount})</span>
+                            </div>
+                            <div className={`flex items-center gap-1.5 ${hasSymbol ? 'text-teal-700 font-bold' : 'text-on-surface-variant'}`}>
                               <span className="material-symbols-outlined text-[16px]">
                                 {hasSymbol ? 'check_circle' : 'radio_button_unchecked'}
                               </span>
-                              <span>1 special symbol</span>
+                              <span>1+ Special Symbol (!@#$%...)</span>
+                            </div>
+                            <div className={`flex items-center gap-1.5 sm:col-span-2 ${passwordsMatch ? 'text-teal-700 font-bold' : 'text-on-surface-variant'}`}>
+                              <span className="material-symbols-outlined text-[16px]">
+                                {passwordsMatch ? 'check_circle' : 'radio_button_unchecked'}
+                              </span>
+                              <span>
+                                {passwordsMatch
+                                  ? 'Passwords Match Perfectly'
+                                  : confirmPassword.length > 0
+                                  ? 'Passwords Do Not Match'
+                                  : 'Confirm Password Required'}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -408,17 +517,13 @@ export default function Signup() {
                                 I am an existing Smile Clinic patient linking my clinic chart
                               </span>
                               <span className="text-[11px] text-on-surface-variant block">
-                                Allows our clinic reception to automatically reconcile past diagnostic X-rays & treatments.
+                                Allows our clinic reception to automatically reconcile past diagnostic X-rays &amp; treatments.
                               </span>
                             </div>
                           </label>
 
                           {isExistingPatient && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              className="pt-2 pl-7"
-                            >
+                            <div className="pt-2 pl-7">
                               <label className="block text-xs font-semibold text-on-surface mb-1">
                                 Existing Patient Chart # (optional)
                               </label>
@@ -429,10 +534,7 @@ export default function Signup() {
                                 placeholder="e.g. SC-84920"
                                 className="w-full sm:w-72 h-10 px-3 rounded-lg bg-white border border-surface-container-high text-xs font-medium focus:outline-none focus:border-primary"
                               />
-                              <span className="text-[10px] text-on-surface-variant block mt-1">
-                                Found on previous physical receipts or appointment reminder cards.
-                              </span>
-                            </motion.div>
+                            </div>
                           )}
                         </div>
 
@@ -441,34 +543,26 @@ export default function Signup() {
                           <label className="block text-xs font-bold text-on-surface mb-1" htmlFor="insuranceProvider">
                             Primary Dental Insurance Provider <span className="text-error">*</span>
                           </label>
-                          <div className="relative">
-                            <select
-                              id="insuranceProvider"
-                              required
-                              value={insuranceProvider}
-                              onChange={(e) => setInsuranceProvider(e.target.value)}
-                              className="w-full h-11 px-4 pr-10 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:outline-none focus:border-primary appearance-none cursor-pointer"
-                            >
-                              <option value="delta">Delta Dental Premier / PPO</option>
-                              <option value="metlife">MetLife Dental</option>
-                              <option value="cigna">Cigna Dental Network</option>
-                              <option value="aetna">Aetna Dental Advantage</option>
-                              <option value="guardian">Guardian DentalGuard</option>
-                              <option value="humana">Humana Dental Coverage</option>
-                              <option value="united">UnitedHealthcare Dental</option>
-                              <option value="selfpay">Self-Pay / Smile Clinic Membership Plan (No Insurance)</option>
-                            </select>
-                            <span className="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant pointer-events-none text-[20px]">
-                              expand_more
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-on-surface-variant mt-1">
-                            You will have the option to review full coverage and member IDs in Step 2.
-                          </p>
+                          <select
+                            id="insuranceProvider"
+                            required
+                            value={insuranceProvider}
+                            onChange={(e) => setInsuranceProvider(e.target.value)}
+                            className="w-full h-11 px-4 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:outline-none focus:border-primary cursor-pointer"
+                          >
+                            <option value="delta">Delta Dental Premier / PPO</option>
+                            <option value="metlife">MetLife Dental</option>
+                            <option value="cigna">Cigna Dental Network</option>
+                            <option value="aetna">Aetna Dental Advantage</option>
+                            <option value="guardian">Guardian DentalGuard</option>
+                            <option value="humana">Humana Dental Coverage</option>
+                            <option value="united">UnitedHealthcare Dental</option>
+                            <option value="selfpay">Self-Pay / Smile Clinic Membership Plan (No Insurance)</option>
+                          </select>
                         </div>
 
-                        {/* Consents */}
-                        <div className="space-y-2 pt-1">
+                        {/* Terms checkbox */}
+                        <div className="pt-1">
                           <label className="flex items-start gap-2.5 cursor-pointer select-none">
                             <input
                               type="checkbox"
@@ -478,37 +572,23 @@ export default function Signup() {
                               className="w-5 h-5 rounded text-primary accent-primary mt-0.5 cursor-pointer"
                             />
                             <span className="text-xs text-on-surface">
-                              I agree to the <Link to="/terms-of-service" target="_blank" className="text-primary hover:underline font-semibold">Terms of Service</Link> and acknowledge the <Link to="/privacy-policy" target="_blank" className="text-primary hover:underline font-semibold">HIPAA Notice of Privacy Practices</Link>. <span className="text-error">*</span>
-                            </span>
-                          </label>
-                          <label className="flex items-start gap-2.5 cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              checked={receiveSms}
-                              onChange={(e) => setReceiveSms(e.target.checked)}
-                              className="w-5 h-5 rounded text-primary accent-primary mt-0.5 cursor-pointer"
-                            />
-                            <span className="text-xs text-on-surface">
-                              Receive SMS appointment notifications, cleaning reminders, and immediate schedule updates.
+                              I certify that all details provided are true and accurate. I consent to Smile Clinic&apos;s{' '}
+                              <Link to="/terms-of-service" className="text-primary font-semibold hover:underline">
+                                Terms of Service
+                              </Link>{' '}
+                              and dual Email &amp; Mobile OTP verification.
                             </span>
                           </label>
                         </div>
 
-                        {/* Action CTA */}
-                        <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-surface-container-high">
+                        <div className="pt-4 flex justify-end">
                           <button
                             type="submit"
-                            className="w-full sm:w-auto px-8 h-12 bg-primary hover:bg-primary-container text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-primary/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            className="px-8 h-12 bg-primary hover:bg-primary-container text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-primary/20 transition-all flex items-center gap-2 cursor-pointer"
                           >
                             <span>Continue to Dental History</span>
                             <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                           </button>
-                          <div className="text-xs text-on-surface-variant flex items-center gap-1.5">
-                            <span>Already have an account?</span>
-                            <Link to="/login" className="text-primary font-bold hover:underline">
-                              Sign in
-                            </Link>
-                          </div>
                         </div>
                       </form>
                     </motion.div>
@@ -525,83 +605,39 @@ export default function Signup() {
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 gap-2 border-b border-surface-container-high mb-6">
                         <div>
-                          <h2 className="font-headline font-bold text-xl sm:text-2xl text-on-surface">Dental History & Coverage</h2>
-                          <p className="text-xs text-on-surface-variant mt-0.5">Help our dental doctors tailor your clinical intake and examinations.</p>
+                          <h2 className="font-headline font-bold text-xl sm:text-2xl text-on-surface">Dental Background &amp; Coverage</h2>
+                          <p className="text-xs text-on-surface-variant mt-0.5">Help your dental physician prepare your preliminary clinical chart.</p>
                         </div>
-                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary self-start">
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary self-start border border-primary/20">
                           Step 2 of 3
                         </span>
                       </div>
 
                       <form onSubmit={handleStep2Submit} className="space-y-5">
-                        {/* Primary Reason for Visit */}
                         <div>
-                          <label className="block text-xs font-bold text-on-surface mb-2 uppercase tracking-wider text-outline">
-                            Primary Reason for Visiting Smile Clinic
+                          <label className="block text-xs font-bold text-on-surface mb-1">
+                            Primary Reason for Initial Consultation <span className="text-error">*</span>
                           </label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            {[
-                              'Routine Cleaning & Comprehensive Exam',
-                              'Toothache / Cavity / Immediate Discomfort',
-                              'Orthodontics & Clear Aligners Consultation',
-                              'Cosmetic Teeth Whitening & Veneers',
-                              'Dental Crown, Bridge or Implant Assessment'
-                            ].map((reason) => (
-                              <button
-                                key={reason}
-                                type="button"
-                                onClick={() => setVisitReason(reason)}
-                                className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all cursor-pointer flex items-center justify-between ${
-                                  visitReason === reason
-                                    ? 'bg-primary text-white border-primary shadow-xs'
-                                    : 'bg-surface-container-low border-surface-container-high text-on-surface hover:bg-surface-container'
-                                }`}
-                              >
-                                <span>{reason}</span>
-                                {visitReason === reason && (
-                                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                                )}
-                              </button>
-                            ))}
-                          </div>
+                          <select
+                            value={visitReason}
+                            onChange={(e) => setVisitReason(e.target.value)}
+                            className="w-full h-11 px-4 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:outline-none focus:border-primary"
+                          >
+                            <option>Routine Cleaning &amp; Comprehensive Exam</option>
+                            <option>Toothache, Sensitivity or Dental Emergency</option>
+                            <option>Cosmetic Whitening or Veneers Consultation</option>
+                            <option>Orthodontics / Clear Aligners Assessment</option>
+                            <option>Dental Implant or Tooth Replacement</option>
+                            <option>Periodontal / Gum Care Therapy</option>
+                          </select>
                         </div>
 
-                        {/* Last Dental Visit */}
-                        <div>
-                          <label className="block text-xs font-bold text-on-surface mb-2 uppercase tracking-wider text-outline">
-                            When was your last dental hygiene visit or cleaning?
-                          </label>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            {[
-                              'Within 6 months',
-                              '6–12 months ago',
-                              '1–2 years ago',
-                              'More than 2 years'
-                            ].map((option) => (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => setLastVisit(option)}
-                                className={`py-2.5 px-3 rounded-xl border text-center text-xs font-semibold transition-all cursor-pointer ${
-                                  lastVisit === option
-                                    ? 'bg-primary text-white border-primary shadow-xs'
-                                    : 'bg-surface-container-low border-surface-container-high text-on-surface hover:bg-surface-container'
-                                }`}
-                              >
-                                {option}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Insurance Member ID */}
                         <div>
                           <label className="block text-xs font-bold text-on-surface mb-1">
                             Insurance Member / Subscriber ID
                           </label>
                           <input
                             type="text"
-                            required
                             value={insuranceMemberId}
                             onChange={(e) => setInsuranceMemberId(e.target.value)}
                             placeholder="e.g. DD-8849-209"
@@ -612,7 +648,7 @@ export default function Signup() {
                         {/* Known Allergies */}
                         <div>
                           <label className="block text-xs font-bold text-on-surface mb-2 uppercase tracking-wider text-outline">
-                            Known Medical Allergies & Sensitivity
+                            Known Medical Allergies &amp; Sensitivity
                           </label>
                           <div className="flex flex-wrap gap-2">
                             {['None', 'Penicillin', 'Latex', 'Local Anesthetics / Lidocaine', 'Sulfa Drugs', 'Codeine', 'Aspirin'].map((item) => {
@@ -650,7 +686,7 @@ export default function Signup() {
                             type="submit"
                             className="px-8 h-12 bg-primary hover:bg-primary-container text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-primary/20 transition-all flex items-center gap-2 cursor-pointer"
                           >
-                            <span>Continue to Verification</span>
+                            <span>Continue to OTP Verification</span>
                             <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                           </button>
                         </div>
@@ -658,7 +694,7 @@ export default function Signup() {
                     </motion.div>
                   )}
 
-                  {/* ==================== STEP 3: SECURITY & VERIFICATION ==================== */}
+                  {/* ==================== STEP 3: SECURITY & DUAL OTP VERIFICATION ==================== */}
                   {step === 3 && (
                     <motion.div
                       key="step3"
@@ -669,50 +705,93 @@ export default function Signup() {
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 gap-2 border-b border-surface-container-high mb-6">
                         <div>
-                          <h2 className="font-headline font-bold text-xl sm:text-2xl text-on-surface">Security & Electronic Consent</h2>
-                          <p className="text-xs text-on-surface-variant mt-0.5">Finalize two-factor credentials and authorized digital signatures.</p>
+                          <h2 className="font-headline font-bold text-xl sm:text-2xl text-on-surface">Dual OTP Verification &amp; Activation</h2>
+                          <p className="text-xs text-on-surface-variant mt-0.5">Enter the verification codes dispatched to your email and mobile phone.</p>
                         </div>
                         <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 self-start">
                           Step 3 of 3
                         </span>
                       </div>
 
-                      <form onSubmit={handleFinalSubmit} className="space-y-5">
-                        {/* 2FA Preference */}
-                        <div>
-                          <label className="block text-xs font-bold text-on-surface mb-2 uppercase tracking-wider text-outline">
-                            Two-Factor Authentication (2FA) Channel
-                          </label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label
-                              onClick={() => setTwoFactorMethod('sms')}
-                              className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
-                                twoFactorMethod === 'sms'
-                                  ? 'bg-primary/5 border-primary ring-1 ring-primary'
-                                  : 'bg-surface-container-low border-surface-container-high'
-                              }`}
-                            >
-                              <span className="material-symbols-outlined text-primary text-[22px]">sms</span>
-                              <div>
-                                <span className="font-bold text-xs sm:text-sm text-on-surface block">SMS One-Time Passcode</span>
-                                <span className="text-[11px] text-on-surface-variant block mt-0.5">Secure SMS code sent to {phone}</span>
-                              </div>
-                            </label>
+                      {/* Demo Notification Banner with One-Click Autofill */}
+                      <div className="mb-5 p-4 bg-primary/5 border border-primary/20 rounded-xl space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
+                            <span className="material-symbols-outlined text-[18px] text-amber-500">auto_awesome</span>
+                            <span>Simulated Dispatch Verification (Demo)</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleAutoFillOtp}
+                            className="text-xs font-bold text-primary bg-surface px-3 py-1 rounded-lg border border-primary/30 hover:bg-primary/10 transition-colors cursor-pointer"
+                          >
+                            Auto-Fill Both Codes
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                          <div className="bg-surface p-2.5 rounded-lg border border-surface-container-high">
+                            <span className="text-[10px] uppercase block text-outline font-sans font-semibold">
+                              Email OTP Sent to ({email || 'sarah@example.com'})
+                            </span>
+                            <span className="text-base font-bold text-on-surface">{mockEmailOtp}</span>
+                          </div>
+                          <div className="bg-surface p-2.5 rounded-lg border border-surface-container-high">
+                            <span className="text-[10px] uppercase block text-outline font-sans font-semibold">
+                              Mobile SMS OTP ({phone.slice(-4) || '8821'})
+                            </span>
+                            <span className="text-base font-bold text-on-surface">{mockMobileOtp}</span>
+                          </div>
+                        </div>
+                      </div>
 
-                            <label
-                              onClick={() => setTwoFactorMethod('app')}
-                              className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
-                                twoFactorMethod === 'app'
-                                  ? 'bg-primary/5 border-primary ring-1 ring-primary'
-                                  : 'bg-surface-container-low border-surface-container-high'
-                              }`}
-                            >
-                              <span className="material-symbols-outlined text-primary text-[22px]">lock_clock</span>
-                              <div>
-                                <span className="font-bold text-xs sm:text-sm text-on-surface block">Authenticator App (TOTP)</span>
-                                <span className="text-[11px] text-on-surface-variant block mt-0.5">Google Authenticator or 1Password passkey</span>
-                              </div>
+                      {otpError && (
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2">
+                          <span className="material-symbols-outlined text-[18px] shrink-0 text-red-600">error</span>
+                          <span>{otpError}</span>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleFinalSubmit} className="space-y-4">
+                        {/* Dual OTP Inputs */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-bold text-on-surface mb-1">
+                              1. Email 6-Digit Code *
                             </label>
+                            <div className="relative flex items-center">
+                              <span className="material-symbols-outlined absolute left-3 text-[18px] text-outline pointer-events-none">
+                                mail
+                              </span>
+                              <input
+                                type="text"
+                                maxLength={6}
+                                required
+                                value={emailOtp}
+                                onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))}
+                                placeholder="e.g. 482910"
+                                className="w-full pl-9 pr-4 py-2.5 bg-surface-container-low rounded-xl text-sm font-mono tracking-widest text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-on-surface mb-1">
+                              2. Mobile SMS 6-Digit Code *
+                            </label>
+                            <div className="relative flex items-center">
+                              <span className="material-symbols-outlined absolute left-3 text-[18px] text-outline pointer-events-none">
+                                phone_iphone
+                              </span>
+                              <input
+                                type="text"
+                                maxLength={6}
+                                required
+                                value={mobileOtp}
+                                onChange={(e) => setMobileOtp(e.target.value.replace(/\D/g, ''))}
+                                placeholder="e.g. 739154"
+                                className="w-full pl-9 pr-4 py-2.5 bg-surface-container-low rounded-xl text-sm font-mono tracking-widest text-on-surface border border-surface-container-high focus:outline-none focus:ring-2 focus:ring-primary"
+                              />
+                            </div>
                           </div>
                         </div>
 
@@ -727,15 +806,15 @@ export default function Signup() {
                             className="w-full h-11 px-4 rounded-xl bg-surface-container-low text-on-surface text-xs sm:text-sm font-medium border border-surface-container-high focus:outline-none focus:border-primary"
                           >
                             <option value="Downtown Main Pavilion (100 Smile Way)">Downtown Main Pavilion (100 Smile Way)</option>
-                            <option value="Northside Specialty & Pediatric Clinic">Northside Specialty & Pediatric Clinic</option>
-                            <option value="Metro Dental Implant & Surgery Suite">Metro Dental Implant & Surgery Suite</option>
+                            <option value="Northside Specialty & Pediatric Clinic">Northside Specialty &amp; Pediatric Clinic</option>
+                            <option value="Metro Dental Implant & Surgery Suite">Metro Dental Implant &amp; Surgery Suite</option>
                           </select>
                         </div>
 
                         {/* Electronic Signature */}
                         <div className="bg-surface-container-low p-4 rounded-xl border border-surface-container-high space-y-2">
                           <label className="block text-xs font-bold text-on-surface">
-                            Electronic Digital Consent Signature
+                            Electronic Digital Consent Signature *
                           </label>
                           <input
                             type="text"
@@ -746,7 +825,7 @@ export default function Signup() {
                             className="w-full h-11 px-4 rounded-xl bg-white text-on-surface text-xs sm:text-sm font-semibold border border-surface-container-high focus:outline-none focus:border-primary font-serif tracking-wide"
                           />
                           <p className="text-[11px] text-on-surface-variant">
-                            By typing your full legal name, you authorize Smile Clinic to maintain your electronic health records and diagnostic charts under HIPAA guidelines.
+                            By signing, you authorize Smile Clinic to maintain your electronic health records under HIPAA guidelines.
                           </p>
                         </div>
 
@@ -764,13 +843,13 @@ export default function Signup() {
                           <button
                             type="submit"
                             disabled={isLoading}
-                            className="px-8 h-12 bg-primary hover:bg-primary-container text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-primary/25 hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                            className="px-8 h-12 bg-primary hover:bg-primary-container text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-primary/25 hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                           >
                             {isLoading ? (
                               <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                             ) : (
                               <>
-                                <span>Complete Registration & Enter Portal</span>
+                                <span>Verify OTPs &amp; Enter Portal</span>
                                 <span className="material-symbols-outlined text-[18px]">check_circle</span>
                               </>
                             )}
@@ -792,7 +871,7 @@ export default function Signup() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-on-surface-variant text-xs text-center sm:text-left">
           <div className="flex items-center justify-center sm:justify-start gap-1.5">
             <span className="material-symbols-outlined text-[16px] text-tertiary">shield_with_heart</span>
-            <span>© 2026 Smile Clinic Health System. All health records encrypted.</span>
+            <span>&copy; 2026 Smile Clinic Health System. All health records encrypted.</span>
           </div>
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 sm:gap-6 text-[11px] font-medium">
             <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
