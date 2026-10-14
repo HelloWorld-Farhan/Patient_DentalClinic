@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ToastNotification from '../components/ToastNotification';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import { usePatientDB } from '../lib/patientDb';
 
 interface VisitRecord {
   id: string;
@@ -43,15 +44,43 @@ const recentVisits: VisitRecord[] = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const {
+    nextAppointment,
+    outstandingBalance,
+    rescheduleAppointment,
+    payAllPendingInvoices,
+    downloadInvoiceHtml,
+    invoices,
+  } = usePatientDB();
+
   const [selectedVisit, setSelectedVisit] = useState<VisitRecord | null>(null);
   const [tipsModalOpen, setTipsModalOpen] = useState(false);
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Reschedule Form State
+  const [rescheduleDate, setRescheduleDate] = useState('2026-11-20');
+  const [rescheduleTime, setRescheduleTime] = useState('10:00 AM - 11:00 AM');
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleDashboardRescheduleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (nextAppointment) {
+      rescheduleAppointment(nextAppointment.id, rescheduleDate, rescheduleTime);
+      showToast(`Appointment rescheduled to ${rescheduleDate} (${rescheduleTime})!`);
+      setRescheduleModalOpen(false);
+    }
+  };
+
+  const handlePayBalance = () => {
+    const settledAmount = payAllPendingInvoices('Visa •••• 4092');
+    setPayModalOpen(false);
+    showToast(`Payment of $${settledAmount.toFixed(2)} settled successfully! Official receipt generated.`);
   };
 
   // Lock background scroll when any dashboard modal is active
@@ -90,23 +119,34 @@ export default function Dashboard() {
               </div>
               <div>
                 <div className="text-xs text-on-primary-container/80 uppercase font-bold tracking-wider">Next Appointment</div>
-                <div className="text-base sm:text-lg font-bold text-on-primary-container leading-tight">Routine Cleaning & Checkup</div>
-                <div className="text-xs text-on-primary-container/90 mt-0.5">Dr. Priya Patel • Oct 24, 10:00 AM</div>
+                <div className="text-base sm:text-lg font-bold text-on-primary-container leading-tight">
+                  {nextAppointment ? nextAppointment.procedure : 'No Upcoming Appointments'}
+                </div>
+                <div className="text-xs text-on-primary-container/90 mt-0.5">
+                  {nextAppointment
+                    ? `${nextAppointment.dentist} • ${nextAppointment.fullDate}`
+                    : 'Book your next dental cleaning or checkup anytime'}
+                </div>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5 w-full sm:w-auto">
-              <button
-                onClick={() => setRescheduleModalOpen(true)}
-                className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-surface-container-lowest text-primary font-bold text-xs sm:text-sm hover:bg-surface-container-low transition-colors shadow-sm cursor-pointer"
-              >
-                Reschedule
-              </button>
+              {nextAppointment ? (
+                <button
+                  onClick={() => {
+                    setRescheduleTime(nextAppointment.timeSlot || '10:00 AM - 11:00 AM');
+                    setRescheduleModalOpen(true);
+                  }}
+                  className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-surface-container-lowest text-primary font-bold text-xs sm:text-sm hover:bg-surface-container-low transition-colors shadow-sm cursor-pointer"
+                >
+                  Reschedule
+                </button>
+              ) : null}
               <button
                 onClick={() => navigate('/dashboard/appointments')}
                 className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-primary text-white font-bold text-xs sm:text-sm hover:bg-primary/90 transition-colors shadow-sm cursor-pointer"
               >
-                View Details
+                {nextAppointment ? 'View Details' : 'Book Now'}
               </button>
             </div>
           </div>
@@ -139,7 +179,7 @@ export default function Dashboard() {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-outline">Next Recommended</span>
-              <span className="font-bold text-primary">Oct 24, 2023</span>
+              <span className="font-bold text-primary">{nextAppointment ? `${nextAppointment.month} ${nextAppointment.day}, 2026` : 'Not Scheduled'}</span>
             </div>
           </div>
         </div>
@@ -387,51 +427,67 @@ export default function Dashboard() {
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl border border-surface-container-high overflow-hidden flex flex-col z-10 my-auto text-xs sm:text-sm max-h-[90vh]"
             >
-              <div className="flex items-center justify-between p-5 border-b border-surface-container-high shrink-0">
-                <h3 className="font-bold text-base text-on-surface">Reschedule Upcoming Visit</h3>
-                <button
-                  type="button"
-                  onClick={() => setRescheduleModalOpen(false)}
-                  className="p-1 rounded-lg hover:bg-surface-container text-on-surface-variant cursor-pointer"
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
-
-              <div className="p-5 space-y-4 overflow-y-auto flex-1">
-                <p className="text-on-surface-variant">
-                  Select a new slot for <strong>Routine Cleaning & Checkup</strong> with Dr. Priya Patel:
-                </p>
-
-                <div>
-                  <label className="block font-bold text-on-surface mb-1">Select New Date *</label>
-                  <input
-                    type="date"
-                    defaultValue="2023-11-20"
-                    className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-lg border border-surface-container-high font-medium text-xs sm:text-sm"
-                  />
+              <form onSubmit={handleDashboardRescheduleSubmit} className="flex flex-col flex-1">
+                <div className="flex items-center justify-between p-5 border-b border-surface-container-high shrink-0">
+                  <h3 className="font-bold text-base text-on-surface">Reschedule Upcoming Visit</h3>
+                  <button
+                    type="button"
+                    onClick={() => setRescheduleModalOpen(false)}
+                    className="p-1 rounded-lg hover:bg-surface-container text-on-surface-variant cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
                 </div>
-              </div>
 
-              <div className="p-4 bg-surface-container-low/50 border-t border-surface-container-high flex flex-col-reverse sm:flex-row justify-end gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setRescheduleModalOpen(false)}
-                  className="px-4 py-2 bg-surface-container-high text-on-surface font-bold rounded-lg cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRescheduleModalOpen(false);
-                    showToast('Appointment rescheduled! Confirmation SMS dispatched.');
-                  }}
-                  className="px-4 py-2 bg-primary text-white font-bold rounded-lg cursor-pointer"
-                >
-                  Update Slot
-                </button>
-              </div>
+                <div className="p-5 space-y-4 overflow-y-auto flex-1">
+                  <p className="text-on-surface-variant">
+                    Select a new slot for <strong>{nextAppointment?.procedure || 'Routine Cleaning & Checkup'}</strong> with {nextAppointment?.dentist || 'Dr. Priya Patel'}:
+                  </p>
+
+                  <div>
+                    <label className="block font-bold text-on-surface mb-1">Select New Date *</label>
+                    <input
+                      type="date"
+                      value={rescheduleDate}
+                      onChange={(e) => setRescheduleDate(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-lg border border-surface-container-high font-medium text-xs sm:text-sm focus:border-primary focus:outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-on-surface mb-1">Select Preferred Time Slot *</label>
+                    <select
+                      value={rescheduleTime}
+                      onChange={(e) => setRescheduleTime(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-lg border border-surface-container-high font-medium text-xs sm:text-sm focus:border-primary focus:outline-none"
+                    >
+                      <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM (Morning)</option>
+                      <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM (Morning)</option>
+                      <option value="11:30 AM - 12:30 PM">11:30 AM - 12:30 PM (Midday)</option>
+                      <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM (Afternoon)</option>
+                      <option value="03:30 PM - 04:30 PM">03:30 PM - 04:30 PM (Afternoon)</option>
+                      <option value="05:00 PM - 06:00 PM">05:00 PM - 06:00 PM (Evening)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-surface-container-low/50 border-t border-surface-container-high flex flex-col-reverse sm:flex-row justify-end gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setRescheduleModalOpen(false)}
+                    className="px-4 py-2 bg-surface-container-high text-on-surface font-bold rounded-lg cursor-pointer hover:bg-surface-container"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-primary text-white font-bold rounded-lg cursor-pointer hover:bg-primary/90 shadow-sm"
+                  >
+                    Update Slot
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>,
           document.body
@@ -477,8 +533,14 @@ export default function Dashboard() {
               <div className="p-5 space-y-4">
                 <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-center space-y-1">
                   <span className="text-xs text-emerald-800 font-medium">Outstanding Statement Balance</span>
-                  <div className="text-3xl font-extrabold text-emerald-950 font-mono">$145.50</div>
-                  <span className="text-[11px] text-emerald-700 block">Delta Dental Paid: $120.00</span>
+                  <div className="text-3xl font-extrabold text-emerald-950 font-mono">
+                    ${outstandingBalance.toFixed(2)}
+                  </div>
+                  <span className="text-[11px] text-emerald-700 block">
+                    {outstandingBalance > 0
+                      ? 'Delta Dental PPO Coverage Applied • Remaining Copay'
+                      : 'All statements are completely settled. No payment due.'}
+                  </span>
                 </div>
 
                 <div className="space-y-1.5">
@@ -503,13 +565,15 @@ export default function Dashboard() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setPayModalOpen(false);
-                    showToast("Payment of $145.50 settled successfully! Receipt sent to email.");
-                  }}
-                  className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-md transition-all cursor-pointer"
+                  disabled={outstandingBalance <= 0}
+                  onClick={handlePayBalance}
+                  className={`px-5 py-2 text-white text-xs font-bold rounded-lg shadow-md transition-all cursor-pointer ${
+                    outstandingBalance > 0
+                      ? 'bg-emerald-700 hover:bg-emerald-800'
+                      : 'bg-surface-container-highest text-outline cursor-not-allowed opacity-60'
+                  }`}
                 >
-                  Authorize $145.50
+                  {outstandingBalance > 0 ? `Authorize $${outstandingBalance.toFixed(2)}` : 'Balance Settled ($0.00)'}
                 </button>
               </div>
             </motion.div>

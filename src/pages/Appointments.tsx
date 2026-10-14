@@ -3,40 +3,8 @@ import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import ToastNotification from '../components/ToastNotification';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import { usePatientDB, UpcomingApt, PastApt } from '../lib/patientDb';
 
-interface UpcomingApt {
-  id: string;
-  dentist: string;
-  dentistImg: string;
-  procedure: string;
-  location: string;
-  month: string;
-  day: string;
-  fullDate: string;
-  timeSlot: string;
-  note: string;
-  status: 'Confirmed' | 'Pending Confirmation';
-}
-
-interface PastApt {
-  id: string;
-  date: string;
-  time: string;
-  dentist: string;
-  dentistTitle: string;
-  treatment: string;
-  category: 'Preventive' | 'Restorative' | 'Orthodontics' | 'Periodontics' | 'Cosmetic';
-  notes: string;
-  status: 'Completed' | 'Follow-up Scheduled';
-  tooth?: string;
-  code: string;
-  fee: number;
-  insurancePaid: number;
-  patientCopay: number;
-  rxPrescribed?: string;
-  vitals?: { bp: string; pulse: string };
-  findings?: string;
-}
 
 const initialUpcoming: UpcomingApt[] = [
   {
@@ -292,8 +260,15 @@ const initialPast: PastApt[] = [
 ];
 
 export default function Appointments() {
-  const [upcomingList, setUpcomingList] = useState<UpcomingApt[]>(initialUpcoming);
-  const [pastList] = useState<PastApt[]>(initialPast);
+  const {
+    upcoming: upcomingList,
+    past: pastList,
+    nextAppointment,
+    addAppointment,
+    rescheduleAppointment,
+    cancelAppointment,
+  } = usePatientDB();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -312,6 +287,10 @@ export default function Appointments() {
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState<UpcomingApt | null>(null);
   const [cancelModalOpen, setCancelModalOpen] = useState<UpcomingApt | null>(null);
   const [calendarModalApt, setCalendarModalApt] = useState<UpcomingApt | null>(null);
+
+  // Reschedule Form State
+  const [rescheduleDate, setRescheduleDate] = useState('2026-11-20');
+  const [rescheduleTime, setRescheduleTime] = useState('11:30 AM - 12:30 PM');
 
   // Popups for Eye Icon and Book Icon
   const [selectedNotesModal, setSelectedNotesModal] = useState<PastApt | null>(null);
@@ -346,12 +325,11 @@ export default function Appointments() {
     const monthStr = months[dateObj.getMonth()] || 'DEC';
     const dayStr = String(dateObj.getDate()).padStart(2, '0');
 
-    const newAppointment: UpcomingApt = {
-      id: `APT-${Date.now().toString().slice(-4)}`,
+    const newAppointment: Omit<UpcomingApt, 'id'> = {
       dentist: newDentist.split('(')[0].trim(),
       dentistImg: newDentist.includes('Chawla')
-        ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuBXeNJ08d85ETK0TSzaE-HTxsfkltSc69VdgoDDmXIucrfMQg9lqLj73uvPZQx3L9PWWuIeSpka9etRy-fJ0Zyv-2g0WCv89kJMEO5ezi_VXYTekmOkuHvOYbWTHFh09CK1TUCPmMSjyvfJsE5ST8xfSX5OSIj90uLcZQXfiq3JME61-135_DtCuC3d2duhy_w0ChoFZvMVYboUziB5xuEJZQH3b1YEeY9Uw8vOykw5Z5A-KofgVgjS'
-        : 'https://lh3.googleusercontent.com/aida-public/AB6AXuC6hrazIG_NsiGGYzWnDz0m5A333wxrviBRPqIFBOs8QjhjyclfL_nyvgWFig0hw4yV2tWGA_1HuEAfZZNC494yj0oCb5v2S3wxppMSO5VjDuMBxIr1JRnweFq0fm1N213Pp6_RLmSxLx7Vcoa7_AjoO5EiOhmwUpJPDbIpTnyOiAOEyLRRniQQ5kpIIBlD1px1-FvX48OzeoIFBbfLlYvccFYXVluhs9awRBIBrrUhEYTv6SpSHI65',
+        ? 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=256&q=80'
+        : 'https://images.unsplash.com/photo-1594824813512-8877e8a9366e?auto=format&fit=crop&w=256&q=80',
       procedure: newService,
       location: newDentist.includes('North') ? 'Smile Clinic North Practice, 789 Medical Plaza' : 'Smile Clinic Main Branch, Suite 402, Downtown',
       month: monthStr,
@@ -362,13 +340,21 @@ export default function Appointments() {
       status: 'Confirmed'
     };
 
-    setUpcomingList([newAppointment, ...upcomingList]);
+    addAppointment(newAppointment);
     setBookModalOpen(false);
     showToast(`Appointment booked successfully with ${newAppointment.dentist}!`);
   };
 
+  const handleRescheduleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rescheduleModalOpen) return;
+    rescheduleAppointment(rescheduleModalOpen.id, rescheduleDate, rescheduleTime);
+    showToast(`Appointment rescheduled to ${rescheduleDate} (${rescheduleTime})!`);
+    setRescheduleModalOpen(null);
+  };
+
   const handleCancelAppointment = (id: string) => {
-    setUpcomingList(upcomingList.filter(apt => apt.id !== id));
+    cancelAppointment(id);
     setCancelModalOpen(null);
     showToast('Appointment cancelled successfully.');
   };
@@ -489,7 +475,9 @@ export default function Appointments() {
           </div>
           <div>
             <span className="text-xs text-on-surface-variant block">Next Visit</span>
-            <h3 className="text-base sm:text-lg font-bold text-on-surface mt-0.5">Oct 24, 10:00 AM</h3>
+            <h3 className="text-base sm:text-lg font-bold text-on-surface mt-0.5">
+              {nextAppointment ? `${nextAppointment.month} ${nextAppointment.day}, ${nextAppointment.timeSlot.split('-')[0].trim()}` : 'None Scheduled'}
+            </h3>
           </div>
         </div>
 
@@ -1406,53 +1394,56 @@ export default function Appointments() {
               </button>
             </div>
 
-            <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
-              <p className="text-on-surface-variant">
-                Select a new appointment slot for <strong>{rescheduleModalOpen.procedure}</strong> with {rescheduleModalOpen.dentist}:
-              </p>
+            <form onSubmit={handleRescheduleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
+                <p className="text-on-surface-variant">
+                  Select a new appointment slot for <strong>{rescheduleModalOpen.procedure}</strong> with {rescheduleModalOpen.dentist}:
+                </p>
 
-              <div>
-                <label className="block font-bold text-on-surface mb-1">Select New Date *</label>
-                <input
-                  type="date"
-                  defaultValue="2026-11-20"
-                  className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-lg border border-surface-container-high font-medium text-xs sm:text-sm"
-                />
+                <div>
+                  <label className="block font-bold text-on-surface mb-1">Select New Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={rescheduleDate}
+                    onChange={(e) => setRescheduleDate(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-lg border border-surface-container-high font-medium text-xs sm:text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-on-surface mb-1">Select New Time Slot *</label>
+                  <select
+                    value={rescheduleTime}
+                    onChange={(e) => setRescheduleTime(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-lg border border-surface-container-high font-medium text-xs sm:text-sm"
+                  >
+                    <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
+                    <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+                    <option value="11:30 AM - 12:30 PM">11:30 AM - 12:30 PM</option>
+                    <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
+                    <option value="03:30 PM - 04:30 PM">03:30 PM - 04:30 PM</option>
+                    <option value="05:00 PM - 06:00 PM">05:00 PM - 06:00 PM</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-on-surface mb-1">Select New Time Slot *</label>
-                <select
-                  defaultValue="11:30 AM - 12:30 PM"
-                  className="w-full px-3.5 py-2.5 bg-surface-container-low rounded-lg border border-surface-container-high font-medium text-xs sm:text-sm"
+              <div className="p-4 bg-surface-container-low/50 border-t border-surface-container-high flex flex-col-reverse sm:flex-row justify-end gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setRescheduleModalOpen(null)}
+                  className="px-4 py-2 bg-surface-container-high text-on-surface font-bold rounded-lg cursor-pointer"
                 >
-                  <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
-                  <option value="11:30 AM - 12:30 PM">11:30 AM - 12:30 PM</option>
-                  <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
-                  <option value="04:00 PM - 05:00 PM">04:00 PM - 05:00 PM</option>
-                </select>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-primary text-white font-bold rounded-lg cursor-pointer hover:bg-primary-container transition-colors shadow-sm"
+                >
+                  Update Slot
+                </button>
               </div>
-            </div>
-
-            <div className="p-4 bg-surface-container-low/50 border-t border-surface-container-high flex flex-col-reverse sm:flex-row justify-end gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => setRescheduleModalOpen(null)}
-                className="px-4 py-2 bg-surface-container-high text-on-surface font-bold rounded-lg cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setRescheduleModalOpen(null);
-                  showToast('Appointment rescheduled successfully! SMS confirmation sent.');
-                }}
-                className="px-4 py-2 bg-primary text-white font-bold rounded-lg cursor-pointer"
-              >
-                Update Slot
-              </button>
-            </div>
+            </form>
           </motion.div>
         </div>,
         document.body

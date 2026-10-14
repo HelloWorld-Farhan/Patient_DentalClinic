@@ -1,171 +1,20 @@
 import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { initialPatientProfile } from '../data/mockData';
+import { usePatientDB, type InvoiceItem } from '../lib/patientDb';
 import ToastNotification from '../components/ToastNotification';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
-interface InvoiceItem {
-  id: string;
-  date: string;
-  description: string;
-  insuranceCovered: number;
-  patientAmount: number;
-  status: 'Pending' | 'Paid';
-  procedureCode: string;
-  dentist: string;
-  paymentMethod?: string;
-  transactionRef?: string;
-}
-
-const defaultInvoices: InvoiceItem[] = [
-  {
-    id: '#INV-2026-892',
-    date: 'Nov 14, 2026',
-    description: 'Comprehensive Periodic Exam & Ultrasonic Cleaning',
-    procedureCode: 'CDT D0120 / D1110',
-    dentist: 'Dr. Priya Patel, DDS',
-    insuranceCovered: 120.00,
-    patientAmount: 45.50,
-    status: 'Pending',
-    paymentMethod: 'Delta Dental Direct Claim'
-  },
-  {
-    id: '#INV-2026-741',
-    date: 'Oct 02, 2026',
-    description: 'Posterior Nanohybrid Composite Restoration (MOD)',
-    procedureCode: 'CDT D2391',
-    dentist: 'Dr. Rohan Chauhan, DMD',
-    insuranceCovered: 280.00,
-    patientAmount: 100.00,
-    status: 'Paid',
-    paymentMethod: 'Visa •••• 4092',
-    transactionRef: 'TXN-8492019'
-  },
-  {
-    id: '#INV-2026-512',
-    date: 'May 20, 2026',
-    description: 'Invisalign Treatment Phase II & 3D Intraoral Scan',
-    procedureCode: 'CDT D8080',
-    dentist: 'Dr. Vikram Chawla, DMD',
-    insuranceCovered: 600.00,
-    patientAmount: 350.00,
-    status: 'Paid',
-    paymentMethod: 'Visa •••• 4092',
-    transactionRef: 'TXN-8491823'
-  },
-  {
-    id: '#INV-2026-304',
-    date: 'Jan 11, 2026',
-    description: 'Diagnostic Bitewing Radiographs & Fluoride Prophylaxis',
-    procedureCode: 'CDT D0274 / D1206',
-    dentist: 'Dr. Priya Patel, DDS',
-    insuranceCovered: 200.00,
-    patientAmount: 0.00,
-    status: 'Paid',
-    paymentMethod: 'Delta Dental 100% Preventive',
-    transactionRef: 'TXN-8490011'
-  },
-  {
-    id: '#INV-2025-912',
-    date: 'Nov 05, 2025',
-    description: 'Periodontal Quadrant Debridement & Therapy',
-    procedureCode: 'CDT D4341',
-    dentist: 'Dr. Sarah Sharma, DDS',
-    insuranceCovered: 330.00,
-    patientAmount: 90.00,
-    status: 'Paid',
-    paymentMethod: 'Visa •••• 4092',
-    transactionRef: 'TXN-7940212'
-  },
-  {
-    id: '#INV-2025-680',
-    date: 'Jul 18, 2025',
-    description: 'Precision CAD/CAM Ceramic Inlay Restoration',
-    procedureCode: 'CDT D2610',
-    dentist: 'Dr. Rohan Chauhan, DMD',
-    insuranceCovered: 450.00,
-    patientAmount: 170.00,
-    status: 'Paid',
-    paymentMethod: 'Visa •••• 4092',
-    transactionRef: 'TXN-7829104'
-  },
-  {
-    id: '#INV-2025-410',
-    date: 'Mar 02, 2025',
-    description: 'Custom Dual-Laminate Bruxism Occlusal Guard',
-    procedureCode: 'CDT D9944',
-    dentist: 'Dr. Vikram Chawla, DMD',
-    insuranceCovered: 320.00,
-    patientAmount: 160.00,
-    status: 'Paid',
-    paymentMethod: 'Visa •••• 4092',
-    transactionRef: 'TXN-7612984'
-  },
-  {
-    id: '#INV-2024-820',
-    date: 'Dec 12, 2024',
-    description: 'Biannual Adult Dental Prophylaxis & Polish',
-    procedureCode: 'CDT D1110',
-    dentist: 'Dr. Priya Patel, DDS',
-    insuranceCovered: 150.00,
-    patientAmount: 0.00,
-    status: 'Paid',
-    paymentMethod: 'Delta Dental 100% Preventive',
-    transactionRef: 'TXN-6920194'
-  },
-  {
-    id: '#INV-2024-550',
-    date: 'Aug 24, 2024',
-    description: 'In-Office Zoom Laser Teeth Whitening Treatment',
-    procedureCode: 'CDT D9972',
-    dentist: 'Dr. Priya Patel, DDS',
-    insuranceCovered: 0.00,
-    patientAmount: 390.00,
-    status: 'Paid',
-    paymentMethod: 'Visa •••• 4092',
-    transactionRef: 'TXN-6582910'
-  },
-  {
-    id: '#INV-2024-210',
-    date: 'Feb 19, 2024',
-    description: 'Preventative Pit & Fissure Sealant Application',
-    procedureCode: 'CDT D1351',
-    dentist: 'Dr. Rohan Chauhan, DMD',
-    insuranceCovered: 180.00,
-    patientAmount: 0.00,
-    status: 'Paid',
-    paymentMethod: 'Delta Dental 100% Preventive',
-    transactionRef: 'TXN-6204918'
-  },
-  {
-    id: '#INV-2023-770',
-    date: 'Oct 15, 2023',
-    description: 'Periodontal Charting & Maintenance Cleaning',
-    procedureCode: 'CDT D4910',
-    dentist: 'Dr. Sarah Sharma, DDS',
-    insuranceCovered: 190.00,
-    patientAmount: 40.00,
-    status: 'Paid',
-    paymentMethod: 'Visa •••• 4092',
-    transactionRef: 'TXN-5910283'
-  },
-  {
-    id: '#INV-2023-140',
-    date: 'Apr 04, 2023',
-    description: 'Emergency Cold Sensitivity Evaluation & Desensitizer',
-    procedureCode: 'CDT D0140',
-    dentist: 'Dr. Priya Patel, DDS',
-    insuranceCovered: 145.00,
-    patientAmount: 0.00,
-    status: 'Paid',
-    paymentMethod: 'Delta Dental 100% Preventive',
-    transactionRef: 'TXN-5309182'
-  }
-];
-
 export default function Billing() {
-  const [invoices, setInvoices] = useState<InvoiceItem[]>(defaultInvoices);
+  const {
+    invoices,
+    outstandingBalance,
+    profile,
+    payInvoice,
+    payAllPendingInvoices,
+    downloadInvoiceHtml,
+  } = usePatientDB();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -201,9 +50,18 @@ export default function Billing() {
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setInvoices(invoices.map(inv => ({ ...inv, status: 'Paid' })));
+    const cleanCard = cardNumber.replace(/\s+/g, '');
+    const last4 = cleanCard.length >= 4 ? cleanCard.slice(-4) : '4092';
+    const settledAmount = payAllPendingInvoices(`Visa •••• ${last4}`);
     setPayModalOpen(false);
-    showToast('Payment processed successfully! Official receipt sent to your email.');
+    showToast(`Payment of $${settledAmount.toFixed(2)} processed successfully! Statement reconciled.`);
+  };
+
+  const handlePaySingle = (inv: InvoiceItem) => {
+    const paid = payInvoice(inv.id, 'Visa •••• 4092');
+    if (paid) {
+      showToast(`Copay for ${inv.id} ($${paid.patientAmount.toFixed(2)}) settled successfully!`);
+    }
   };
 
   // Filter Invoices
@@ -255,46 +113,19 @@ export default function Billing() {
     setIsGeneratingPdf(true);
     setPdfDownloadProgress(20);
 
-    const step1 = setTimeout(() => setPdfDownloadProgress(60), 350);
-    const step2 = setTimeout(() => setPdfDownloadProgress(90), 750);
+    const step1 = setTimeout(() => setPdfDownloadProgress(60), 300);
+    const step2 = setTimeout(() => setPdfDownloadProgress(90), 600);
     const step3 = setTimeout(() => {
       setPdfDownloadProgress(100);
       setIsGeneratingPdf(false);
 
-      // Trigger text / receipt document download
-      const receiptContent = `========================================================
-SMILE CLINIC ADVANCED ORAL HEALTH - OFFICIAL STATEMENT
-========================================================
-Invoice Reference: ${inv.id}
-Date: ${inv.date}
-Patient: ${initialPatientProfile.name} (ID: ${initialPatientProfile.id})
-Attending Clinician: ${inv.dentist}
-Procedure: ${inv.description}
-CDT Code: ${inv.procedureCode}
+      // Trigger high-definition HTML statement receipt download
+      downloadInvoiceHtml(inv);
 
-Fee Breakdown:
-- Gross Fee: $${(inv.insuranceCovered + inv.patientAmount).toFixed(2)}
-- Insurance Settlement: -$${inv.insuranceCovered.toFixed(2)}
-- Patient Copay: $${inv.patientAmount.toFixed(2)}
-Status: ${inv.status.toUpperCase()}
-Payment Method: ${inv.paymentMethod || 'Visa •••• 4092'}
-Authorization: ${inv.transactionRef || 'DIRECT-AUTH-7492'}
-========================================================
-Thank you for entrusting your dental health to Smile Clinic.
-========================================================`;
-
-      const blob = new Blob([receiptContent], { type: 'text/plain;charset=utf-8' });
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
-      link.setAttribute('download', `SmileClinic_Statement_${inv.id.replace('#', '')}.txt`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      showToast(`Itemized PDF receipt for ${inv.id} downloaded successfully!`);
+      showToast(`Itemized statement for ${inv.id} downloaded successfully!`);
       setSelectedInvoiceForPdf(null);
       setPdfDownloadProgress(0);
-    }, 1200);
+    }, 850);
 
     return () => {
       clearTimeout(step1);
@@ -302,10 +133,6 @@ Thank you for entrusting your dental health to Smile Clinic.
       clearTimeout(step3);
     };
   };
-
-  const pendingTotal = invoices
-    .filter(inv => inv.status === 'Pending')
-    .reduce((acc, curr) => acc + curr.patientAmount, 0);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -324,7 +151,7 @@ Thank you for entrusting your dental health to Smile Clinic.
                 Current Balance
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold text-on-primary-container font-mono">
-                ${pendingTotal > 0 ? pendingTotal.toFixed(2) : '0.00'}
+                ${outstandingBalance > 0 ? outstandingBalance.toFixed(2) : '0.00'}
               </h2>
             </div>
             <div className="bg-white/20 p-2.5 rounded-full backdrop-blur-md text-white">
@@ -335,21 +162,26 @@ Thank you for entrusting your dental health to Smile Clinic.
           <div className="relative z-10 space-y-2 mb-6">
             <div className="flex justify-between text-xs sm:text-sm text-on-primary-container/90">
               <span>Due Date</span>
-              <span className="font-semibold">Nov 28, 2026</span>
+              <span className="font-semibold">{outstandingBalance > 0 ? 'Nov 28, 2026' : 'No Payment Due'}</span>
             </div>
             <div className="flex justify-between text-xs sm:text-sm text-on-primary-container/90">
-              <span>Last Statement Issued</span>
-              <span className="font-semibold">Nov 14, 2026</span>
+              <span>Account Status</span>
+              <span className="font-semibold">{outstandingBalance > 0 ? 'Pending Copay Settlement' : 'Account Settled & Current'}</span>
             </div>
           </div>
 
           <div className="relative z-10 flex gap-3">
             <button
+              disabled={outstandingBalance <= 0}
               onClick={() => setPayModalOpen(true)}
-              className="flex-1 bg-surface-container-lowest text-primary font-bold py-3 px-6 rounded-lg hover:bg-surface-bright transition-all shadow-sm flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer"
+              className={`flex-1 font-bold py-3 px-6 rounded-lg transition-all shadow-sm flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer ${
+                outstandingBalance > 0
+                  ? 'bg-surface-container-lowest text-primary hover:bg-surface-bright'
+                  : 'bg-white/20 text-white/70 cursor-not-allowed opacity-80'
+              }`}
             >
               <span className="material-symbols-outlined text-[18px]">lock</span>
-              <span>{pendingTotal > 0 ? `Pay $${pendingTotal.toFixed(2)} Securely` : 'Account Settled'}</span>
+              <span>{outstandingBalance > 0 ? `Pay $${outstandingBalance.toFixed(2)} Securely` : 'All Settled ($0.00)'}</span>
             </button>
           </div>
         </div>
@@ -364,7 +196,7 @@ Thank you for entrusting your dental health to Smile Clinic.
                 </div>
                 <div>
                   <span className="text-xs text-on-surface-variant uppercase tracking-wider block font-semibold">Active Insurance Policy</span>
-                  <h3 className="text-lg sm:text-xl font-bold text-on-surface">{initialPatientProfile.insurance.provider}</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-on-surface">{profile.insurance.provider}</h3>
                 </div>
               </div>
               <span className="bg-secondary-fixed text-on-secondary-fixed font-bold text-xs px-3 py-1 rounded-full">
@@ -375,15 +207,15 @@ Thank you for entrusting your dental health to Smile Clinic.
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 my-5">
               <div className="bg-surface-container-low p-3.5 rounded-lg border border-surface-container-high/60">
                 <span className="text-xs text-on-surface-variant block mb-1">Policy Number</span>
-                <span className="text-sm font-bold text-on-surface font-mono">{initialPatientProfile.insurance.policyNumber}</span>
+                <span className="text-sm font-bold text-on-surface font-mono">{profile.insurance.policyNumber}</span>
               </div>
               <div className="bg-surface-container-low p-3.5 rounded-lg border border-surface-container-high/60">
                 <span className="text-xs text-on-surface-variant block mb-1">Coverage Level</span>
-                <span className="text-sm font-bold text-primary">{initialPatientProfile.insurance.coverageLevel}</span>
+                <span className="text-sm font-bold text-primary">{profile.insurance.coverageLevel}</span>
               </div>
               <div className="bg-surface-container-low p-3.5 rounded-lg border border-surface-container-high/60 col-span-2 md:col-span-1">
                 <span className="text-xs text-on-surface-variant block mb-1">Group ID</span>
-                <span className="text-sm font-bold text-on-surface font-mono">{initialPatientProfile.insurance.groupId}</span>
+                <span className="text-sm font-bold text-on-surface font-mono">{profile.insurance.groupId}</span>
               </div>
             </div>
           </div>
@@ -393,17 +225,17 @@ Thank you for entrusting your dental health to Smile Clinic.
             <div className="flex justify-between text-xs sm:text-sm mb-1.5">
               <span className="text-on-surface-variant font-medium">Annual Deductible Met</span>
               <span className="text-on-surface font-bold font-mono">
-                ${initialPatientProfile.insurance.deductibleMet} / ${initialPatientProfile.insurance.deductibleTotal}
+                ${profile.insurance.deductibleMet.toFixed(2)} / ${profile.insurance.deductibleTotal.toFixed(2)}
               </span>
             </div>
             <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
               <div
                 className="bg-primary h-full rounded-full transition-all duration-500"
-                style={{ width: `${(initialPatientProfile.insurance.deductibleMet / initialPatientProfile.insurance.deductibleTotal) * 100}%` }}
+                style={{ width: `${Math.min(100, (profile.insurance.deductibleMet / profile.insurance.deductibleTotal) * 100)}%` }}
               />
             </div>
             <span className="text-xs text-on-surface-variant mt-1.5 block text-right">
-              ${initialPatientProfile.insurance.deductibleTotal - initialPatientProfile.insurance.deductibleMet} remaining until 100% copay threshold
+              ${Math.max(0, profile.insurance.deductibleTotal - profile.insurance.deductibleMet).toFixed(2)} remaining until 100% copay threshold
             </span>
           </div>
         </div>
@@ -569,16 +401,29 @@ Thank you for entrusting your dental health to Smile Clinic.
                         {inv.status}
                       </span>
                     </td>
-                    <td className="p-3.5 text-right">
-                      {/* PDF Receipt Button with Animated Modal */}
-                      <button
-                        onClick={() => setSelectedInvoiceForPdf(inv)}
-                        className="px-2.5 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors inline-flex items-center gap-1.5 text-xs font-bold cursor-pointer"
-                        title="View & Download PDF Receipt"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">download</span>
-                        <span>PDF</span>
-                      </button>
+                    <td className="p-3.5 text-right whitespace-nowrap">
+                      <div className="inline-flex items-center gap-1.5 justify-end">
+                        {inv.status === 'Pending' && (
+                          <button
+                            type="button"
+                            onClick={() => handlePaySingle(inv)}
+                            className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors inline-flex items-center gap-1 text-xs font-bold cursor-pointer shadow-xs"
+                            title="Pay this copay"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">credit_card</span>
+                            <span>Pay ${inv.patientAmount.toFixed(2)}</span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedInvoiceForPdf(inv)}
+                          className="px-2.5 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors inline-flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+                          title="View & Download Statement"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">download</span>
+                          <span>PDF</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -673,8 +518,8 @@ Thank you for entrusting your dental health to Smile Clinic.
               <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <span className="text-[10px] font-bold text-slate-500 uppercase block">Billed Patient</span>
-                  <strong className="text-slate-900 text-sm block">{initialPatientProfile.name}</strong>
-                  <span className="text-slate-600 block">ID: #{initialPatientProfile.id}</span>
+                  <strong className="text-slate-900 text-sm block">{profile.name}</strong>
+                  <span className="text-slate-600 block">ID: #{profile.id}</span>
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] font-bold text-slate-500 uppercase block">Status</span>
@@ -820,11 +665,11 @@ Thank you for entrusting your dental health to Smile Clinic.
               <div>
                 <span className="text-xs text-on-surface-variant block">Total Due</span>
                 <span className="text-2xl font-extrabold text-primary font-mono">
-                  ${pendingTotal > 0 ? pendingTotal.toFixed(2) : '45.50'}
+                  ${outstandingBalance.toFixed(2)}
                 </span>
               </div>
               <span className="text-xs font-bold bg-secondary-fixed text-on-secondary-fixed px-3 py-1 rounded-full">
-                Invoice #INV-2026-892
+                {outstandingBalance > 0 ? 'Copay Settlement' : 'No Balance Due'}
               </span>
             </div>
 
@@ -885,10 +730,19 @@ Thank you for entrusting your dental health to Smile Clinic.
               <div className="pt-3">
                 <button
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary-container text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer text-sm"
+                  disabled={outstandingBalance <= 0}
+                  className={`w-full font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer text-sm ${
+                    outstandingBalance > 0
+                      ? 'bg-primary hover:bg-primary-container text-white'
+                      : 'bg-surface-container-highest text-outline cursor-not-allowed opacity-60'
+                  }`}
                 >
                   <span className="material-symbols-outlined text-[18px]">verified_user</span>
-                  <span>Authorize Payment (${pendingTotal > 0 ? pendingTotal.toFixed(2) : '45.50'})</span>
+                  <span>
+                    {outstandingBalance > 0
+                      ? `Authorize Payment ($${outstandingBalance.toFixed(2)})`
+                      : 'All Balance Settled ($0.00)'}
+                  </span>
                 </button>
               </div>
             </form>
