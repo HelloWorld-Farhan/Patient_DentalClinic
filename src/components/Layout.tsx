@@ -22,6 +22,15 @@ export default function Layout() {
     return localStorage.getItem('smileclinic_patient_avatar') || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
   });
 
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/dashboard/records?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   useEffect(() => {
     const handleAvatarUpdate = () => {
       const saved = localStorage.getItem('smileclinic_patient_avatar');
@@ -217,48 +226,63 @@ export default function Layout() {
 
       {/* Top Header Bar */}
       <div className="lg:pl-64 flex flex-col flex-1">
-        <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-xl border-b border-surface-container-high h-16 flex items-center justify-between px-4 sm:px-6">
-          {/* Left: Mobile Toggle & Page Context */}
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-surface-container-high h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Left: Mobile Toggle & Global Search Bar */}
+          <div className="flex items-center gap-3 flex-1 max-w-lg">
             <button
               type="button"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-xl text-on-surface hover:bg-surface-container transition-colors cursor-pointer flex items-center justify-center"
+              className="lg:hidden p-2 rounded-xl text-on-surface hover:bg-surface-container transition-colors cursor-pointer flex items-center justify-center shrink-0"
               aria-label={sidebarOpen ? "Close sidebar menu" : "Open sidebar menu"}
             >
               <span className="material-symbols-outlined text-[24px]">
                 {sidebarOpen ? 'close' : 'menu'}
               </span>
             </button>
-            <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-on-surface-variant">
-              <span>Patient Portal</span>
-              <span className="text-outline">/</span>
-              <span className="text-primary font-semibold capitalize">
-                {location.pathname.replace('/dashboard', '').replace('/', '') || 'Overview'}
-              </span>
-            </div>
+
+            {/* Global Search Bar (identical styling to Prescription Portal) */}
+            <form onSubmit={handleSearch} className="flex-1 hidden sm:block">
+              <div className="relative flex items-center bg-surface-container-lowest rounded-xl px-3 py-2 border border-surface-container-high shadow-xs focus-within:border-primary/60 transition-colors">
+                <span className="material-symbols-outlined text-outline text-[18px] mr-2">search</span>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search records, appointments, prescriptions..."
+                  className="w-full bg-transparent text-xs text-on-surface placeholder:text-outline outline-none"
+                />
+                <kbd className="text-[10px] bg-surface-container-high text-on-surface-variant px-1.5 py-0.5 rounded font-mono ml-1">⌘K</kbd>
+              </div>
+            </form>
           </div>
 
-          {/* Right: Emergency Triage Hotline, Notifications, Profile */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* 24/7 Dental Emergency Hotline */}
-            <a
-              href="tel:5552345678"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold hover:bg-emerald-100 transition-colors"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Emergency 24/7:</span>
-              <span className="font-bold">(555) 234-5678</span>
-            </a>
+          {/* Right Header Badges & Actions */}
+          <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+            {/* EMR Integrated Pill */}
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-surface-container-low border border-surface-container-high rounded-full">
+              <span className="material-symbols-outlined text-secondary text-[16px]">verified_user</span>
+              <span className="text-[11px] font-bold text-secondary">EMR Integrated</span>
+            </div>
 
-            {/* Support Desk Direct Link */}
+            {/* Quick Action Button: New Appointment */}
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/appointments')}
+              className="px-3.5 py-1.5 rounded-xl bg-primary text-white font-bold text-xs hover:bg-primary/90 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              title="Schedule New Dental Appointment"
+            >
+              <span className="material-symbols-outlined text-[16px]">add_circle</span>
+              <span className="hidden sm:inline">New Appointment</span>
+            </button>
+
+            {/* Support Desk Link */}
             <Link
               to="/support"
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors text-xs font-semibold"
-              title="Patient Support & Clinical Helpdesk"
+              className="hidden lg:flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors text-xs font-semibold"
+              title="Patient Support & Helpdesk"
             >
               <span className="material-symbols-outlined text-[18px] text-primary">help_outline</span>
-              <span className="hidden sm:inline">Support</span>
+              <span>Support</span>
             </Link>
 
             {/* Notification Bell Dropdown */}
